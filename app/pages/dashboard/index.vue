@@ -8,10 +8,11 @@ useSeoMeta({
   title: 'Dashboard'
 })
 
-const { profile, isCustomer, loading } = useUser()
+const { profile, isCustomer } = useUser()
 const { orders, fetchOrders } = useOrders()
 const { settings } = useSettings()
-const router = useRouter()
+
+// const { data: page } = await useAsyncData('index', () => queryCollection('index').first())
 
 const supportContacts = [
   { name: 'Phong', region: 'Vietnam', method: 'Zalo', href: 'https://zalo.me' },
@@ -29,10 +30,11 @@ watch(isCustomer, async (customer) => {
   <UDashboardPanel id="dashboard" :ui="{ body: 'lg:py-8' }" v-if="profile">
     <template #body>
       <div class="grid gap-4 sm:grid-cols-3">
-        <UPageCard spotlight title="Số credit hiện có">
+        <UPageCard spotlight title="Số credit hiện có" to="/dashboard/purchase">
           <div class="flex flex-col items-center text-center">
             <p class="mt-2 text-4xl font-semibold text-slate-900 dark:text-white">{{ profile?.credits ?? 0 }}</p>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Giá mỗi credits: {{ formatCurrency(settings?.credit_price) }} VND</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Giá mỗi credits: {{
+              formatCurrency(settings?.credit_price) }} VND</p>
             <div class="mt-4 flex flex-wrap gap-3">
               <UButton to="/dashboard/purchase" color="primary" icon="i-lucide-shopping-cart">Mua thêm</UButton>
             </div>

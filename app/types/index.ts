@@ -36,3 +36,9 @@ export interface Stat {
   variation: number
   formatter?: (value: number) => string
 }
+
+export interface Sale {
+  date: string
+  name: string
+  amount: string
+}

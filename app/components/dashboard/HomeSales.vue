@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, resolveComponent } from 'vue'
+import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import type { Period, Range, Sale } from '~/types'
 
@@ -8,45 +8,32 @@ const props = defineProps<{
   range: Range
 }>()
 
-const UBadge = resolveComponent('UBadge')
-
-const sampleEmails = [
-  'james.anderson@example.com',
-  'mia.white@example.com',
-  'william.brown@example.com',
-  'emma.davis@example.com',
-  'ethan.harris@example.com'
-]
-
-const { data } = await useAsyncData('sales', async () => {
-  const sales: Sale[] = []
-  const currentDate = new Date()
-
-  for (let i = 0; i < 5; i++) {
-    const hoursAgo = randomInt(0, 48)
-    const date = new Date(currentDate.getTime() - hoursAgo * 3600000)
-
-    sales.push({
-      id: (4600 - i).toString(),
-      date: date.toISOString(),
-      status: randomFrom(['paid', 'failed', 'refunded']),
-      email: randomFrom(sampleEmails),
-      amount: randomInt(100, 1000)
-    })
+const { data } = await useFetch(
+  '/api/payments/list',
+  {
+    query: computed(() => ({
+      start:
+        props.range.start.toISOString(),
+      end:
+        props.range.end.toISOString()
+    })),
+    default: () => []
   }
+)
 
-  return sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-}, {
-  watch: [() => props.period, () => props.range],
-  default: () => []
-})
+const sales = computed<Sale[]>(() =>
+  ((data.value || []) as any).map((p: { paid_at: any; profiles: { name: any; }; amount: any; }) => ({
+    date: p.paid_at,
+
+    name:
+      p.profiles?.name ??
+      'Unknown',
+
+    amount: p.amount
+  }))
+)
 
 const columns: TableColumn<Sale>[] = [
-  {
-    accessorKey: 'id',
-    header: 'ID',
-    cell: ({ row }) => `#${row.getValue('id')}`
-  },
   {
     accessorKey: 'date',
     header: 'Date',
@@ -61,23 +48,8 @@ const columns: TableColumn<Sale>[] = [
     }
   },
   {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => {
-      const color = {
-        paid: 'success' as const,
-        failed: 'error' as const,
-        refunded: 'neutral' as const
-      }[row.getValue('status') as string]
-
-      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
-        row.getValue('status')
-      )
-    }
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email'
+    accessorKey: 'name',
+    header: 'Name'
   },
   {
     accessorKey: 'amount',
@@ -85,9 +57,9 @@ const columns: TableColumn<Sale>[] = [
     cell: ({ row }) => {
       const amount = Number.parseFloat(row.getValue('amount'))
 
-      const formatted = new Intl.NumberFormat('en-US', {
+      const formatted = new Intl.NumberFormat('vi-VN', {
         style: 'currency',
-        currency: 'EUR'
+        currency: 'VND'
       }).format(amount)
 
       return h('div', { class: 'text-right font-medium' }, formatted)
@@ -98,7 +70,7 @@ const columns: TableColumn<Sale>[] = [
 
 <template>
   <UTable
-    :data="data"
+    :data="sales"
     :columns="columns"
     class="shrink-0"
     :ui="{
