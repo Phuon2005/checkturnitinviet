@@ -25,7 +25,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
       id: 'file',
       header: 'File',
       cell: ({ row }) =>
-        row.original.documents.file_name
+        row.original.documents.original_filename
     },
 
     {

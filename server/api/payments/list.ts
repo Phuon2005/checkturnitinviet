@@ -2,6 +2,7 @@ import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 import { z } from 'zod'
 
 export default eventHandler(async (event) => {
+    // TODO CREATE function to refactor these admin checks
     const user = await serverSupabaseUser(event)
 
     if (!user) return null

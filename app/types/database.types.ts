@@ -41,29 +41,32 @@ export type Database = {
     Tables: {
       documents: {
         Row: {
-          file_name: string
           file_path: string
           file_size: number | null
           id: string
           mime_type: string | null
+          original_filename: string
+          stored_filename: string | null
           uploaded_at: string | null
           user_id: string | null
         }
         Insert: {
-          file_name: string
           file_path: string
           file_size?: number | null
           id?: string
           mime_type?: string | null
+          original_filename: string
+          stored_filename?: string | null
           uploaded_at?: string | null
           user_id?: string | null
         }
         Update: {
-          file_name?: string
           file_path?: string
           file_size?: number | null
           id?: string
           mime_type?: string | null
+          original_filename?: string
+          stored_filename?: string | null
           uploaded_at?: string | null
           user_id?: string | null
         }

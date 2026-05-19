@@ -36,11 +36,10 @@ const handleFileDrop = async (files: File[]) => {
       title: 'Upload thành công',
       description: 'Tài liệu đã được tải lên và đơn hàng đã được tạo'
     })
-    await router.push('/dashboard')
   } catch (error: unknown) {
     const err = error as Error
     toast.add({
-      title: 'Lỗi upload',
+      title: 'Lỗi upload, xin hãy liên hệ nhân viên để hỗ trợ',
       description: err.message,
       color: 'error'
     })

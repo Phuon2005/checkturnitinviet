@@ -11,9 +11,8 @@ useSeoMeta({
   title: 'Work Dashboard'
 })
 
-const { profile, isEmployee, isAdmin, loading } = useUser()
+const { profile, isEmployee, isAdmin } = useUser()
 const { orders, fetchOrders, assignOrder, submitReport, downloadDocument, subscribeToOrders } = useOrders()
-const router = useRouter()
 const toast = useToast()
 
 const reportModal = ref(false)
@@ -68,7 +67,7 @@ const submitOrderReport = async () => {
 
 const handleDownload = async (order: Order) => {
   try {
-    await downloadDocument(order.documents.file_path, order.documents.file_name)
+    await downloadDocument(order.documents.file_path, order.documents.original_filename)
   } catch (error: any) {
     toast.add({
       title: 'Lỗi tải xuống',
