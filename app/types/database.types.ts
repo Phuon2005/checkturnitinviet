@@ -294,8 +294,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      deduct_credits: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
       is_admin: { Args: never; Returns: boolean }
       is_employee: { Args: never; Returns: boolean }
+      restore_credits: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

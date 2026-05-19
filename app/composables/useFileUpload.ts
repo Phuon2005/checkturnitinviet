@@ -40,13 +40,8 @@ export const useFileUpload = () => {
 
     const creditsRequired = creditMap[checkType]
 
-    const currentCredits = profile.value.credits ?? 0
-
-    if (currentCredits < creditsRequired) {
-      throw new Error('Không đủ credits')
-    }
-
-    const ext = file.name.split('.').pop() || 'dat'
+    const ext =
+      file.name.split('.').pop() || 'dat'
 
     const fileName =
       `${Date.now()}-${randomUUID()}.${ext}`
@@ -55,15 +50,23 @@ export const useFileUpload = () => {
       `${profile.value.id}/${fileName}`
 
     let documentId: string | null = null
+    let creditsDeducted = false
 
     try {
+      if (profile.value.credits! < creditsRequired) {
+        throw new Error(
+          `Không đủ credits. Cần ${creditsRequired}, hiện có ${profile.value.credits}`
+        )
+      }
+      // upload storage
       const { error: uploadError } =
         await supabase.storage
           .from('documents')
           .upload(filePath, file)
 
-      if (uploadError) throw uploadError
+      if (uploadError) throw new Error(uploadError.message)
 
+      // create document
       const {
         data: document,
         error: documentError
@@ -80,21 +83,32 @@ export const useFileUpload = () => {
         .select()
         .single()
 
-      if (documentError) throw documentError
+      if (documentError) {
+        throw documentError
+      }
 
       documentId = document.id
 
-      // TODO : potential race conditions, later replace with RPC
-      const { error: creditError } =
-        await supabase
-          .from('profiles')
-          .update({
-            credits:
-              currentCredits - creditsRequired
-          })
-          .eq('id', profile.value.id)
+      const {
+        data: success,
+        error: creditError
+      } = await supabase.rpc(
+        'deduct_credits',
+        {
+          p_user_id: profile.value.id,
+          p_amount: creditsRequired
+        }
+      )
 
-      if (creditError) throw creditError
+      if (creditError) {
+        throw new Error(creditError.message)
+      }
+
+      if (!success) {
+        throw new Error('Không đủ credits')
+      }
+
+      creditsDeducted = true
 
       // create order
       const {
@@ -111,13 +125,26 @@ export const useFileUpload = () => {
         .select()
         .single()
 
-      if (orderError) throw orderError
-
-      await fetch()
+      if (orderError) {
+        throw orderError
+      }
 
       return order
 
     } catch (error) {
+
+      // restore credits
+      if (creditsDeducted) {
+        try {
+          await supabase.rpc(
+            'restore_credits',
+            {
+              p_user_id: profile.value.id,
+              p_amount: creditsRequired
+            }
+          )
+        } catch { }
+      }
 
       // cleanup document row
       if (documentId) {
@@ -126,7 +153,7 @@ export const useFileUpload = () => {
             .from('documents')
             .delete()
             .eq('id', documentId)
-        } catch {}
+        } catch { }
       }
 
       // cleanup file
@@ -134,7 +161,7 @@ export const useFileUpload = () => {
         await supabase.storage
           .from('documents')
           .remove([filePath])
-      } catch {}
+      } catch { }
 
       throw error
     }
