@@ -22,23 +22,24 @@ const state = reactive<Partial<Schema>>({
 
 const toast = useToast()
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  const data = await $fetch('/api/user/create', {
-    method: "post",
-    body: {
-      email: event.data.email,
-      password: event.data.password,
-      role: event.data.role
-    }
-  })
-  if (!data?.success) {
+  try {
+    await $fetch('/api/user/create', {
+      method: "post",
+      body: {
+        email: event.data.email,
+        password: event.data.password,
+        role: event.data.role
+      }
+    })
+  } catch (err: any) {
     toast.add({
       title: 'Failed',
-      description: `New user can't be created`, //TODO more descriptive
+      description: `${err}`,
       color: 'error'
     })
-
     return
   }
+
   toast.add({ title: 'Success', description: `New user ${event.data.email} added`, color: 'success' })
   open.value = false
 }
