@@ -56,7 +56,56 @@ watchEffect(() => {
         <MDC :value="page.description" unwrap="p" />
       </template>
 
-      <LiveReport />
+      <div class="mt-8 w-full max-w-3xl mx-auto">
+        <UCard variant="subtle" class="backdrop-blur border border-default">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="flex items-start gap-3">
+              <div class="rounded-lg bg-primary/10 p-2">
+                <UIcon name="i-lucide-zap" class="w-5 h-5 text-primary" />
+              </div>
+
+              <div>
+                <p class="font-semibold">
+                  Xử lý nhanh
+                </p>
+                <p class="text-sm text-muted">
+                  Kết quả trong khoảng 2–5 phút
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="rounded-lg bg-primary/10 p-2">
+                <UIcon name="i-lucide-badge-dollar-sign" class="w-5 h-5 text-primary" />
+              </div>
+
+              <div>
+                <p class="font-semibold">
+                  Giá cạnh tranh
+                </p>
+                <p class="text-sm text-muted">
+                  Chỉ trả tiền theo số credit sử dụng
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="rounded-lg bg-primary/10 p-2">
+                <UIcon name="i-lucide-shield-check" class="w-5 h-5 text-primary" />
+              </div>
+
+              <div>
+                <p class="font-semibold">
+                  Riêng tư & bảo mật
+                </p>
+                <p class="text-sm text-muted">
+                  File của bạn được xử lý an toàn
+                </p>
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </div>
     </UPageHero>
 
     <UPageSection :title="page.process.title" :description="page.process.description">
@@ -74,12 +123,8 @@ watchEffect(() => {
 
     <USeparator class="mx-auto w-48" />
     <UPageSection :title="page.report_preview.title" :description="page.report_preview.description">
-      <ReportOutput
-        :ai-score="page.report_preview.ai_score"
-        :similarity-score="page.report_preview.similarity_score"
-        :file-data="reportFileData"
-        :footer-text="page.report_preview.footnote"
-      />
+      <ReportOutput :ai-score="page.report_preview.ai_score" :similarity-score="page.report_preview.similarity_score"
+        :file-data="reportFileData" :footer-text="page.report_preview.footnote" />
     </UPageSection>
 
     <USeparator class="mx-auto w-48" />
