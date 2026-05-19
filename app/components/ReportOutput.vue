@@ -22,7 +22,8 @@ const formattedFileSize = computed(() => {
 </script>
 
 <template>
-  <UPageCard spotlight
+  <!-- TODO USE UPageCard spotlight -->
+  <UCard spotlight
     class="max-w-md mx-auto overflow-hidden rounded-[28px] border border-secondary/10 bg-white/90 shadow-sm dark:border-neutral-800 dark:bg-neutral-950/80">
     <template #title>
       <div class="mt-3 space-y-2">
@@ -65,5 +66,5 @@ const formattedFileSize = computed(() => {
     </div>
 
     <p v-if="props.footerText" class="pt-4 text-sm text-muted">{{ props.footerText }}</p>
-  </UPageCard>
+  </UCard>
 </template>

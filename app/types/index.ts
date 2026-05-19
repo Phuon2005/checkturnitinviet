@@ -18,9 +18,9 @@ export type SystemSettings = SystemSettingsRow
 
 export interface ReportFileData {
   fileName: string
-  fileSize: number
-  pages: number
-  wordCount: number
+  fileSize?: number
+  pages?: number
+  wordCount?: number
 }
 
 export type Period = 'daily' | 'weekly' | 'monthly'
