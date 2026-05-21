@@ -9,7 +9,7 @@ useSeoMeta({
 });
 
 const { profile, isCustomer } = useUser();
-const { orders, fetchOrders } = useOrders();
+const { orders, fetchOrders, subscribeToOrders } = useOrders();
 const { settings } = useSettings();
 
 // const { data: page } = await useAsyncData('index', () => queryCollection('index').first())
@@ -20,16 +20,25 @@ const supportContacts = [
   { name: "Ken", region: "Kenya", method: "WA", href: "https://wa.me" },
 ];
 
+const unsubscribeOrders = ref<(() => void) | null>(null);
+
 watch(
   isCustomer,
   async (customer) => {
     if (customer) {
       await fetchOrders();
-      console.log(orders);
+      unsubscribeOrders.value = subscribeToOrders();
+    } else {
+      unsubscribeOrders.value?.();
+      unsubscribeOrders.value = null;
     }
   },
   { immediate: true },
 );
+
+onUnmounted(() => {
+  unsubscribeOrders.value?.();
+});
 </script>
 <template>
   <UDashboardPanel id="dashboard" :ui="{ body: 'lg:py-8' }" v-if="profile">

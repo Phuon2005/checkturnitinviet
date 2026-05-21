@@ -112,47 +112,93 @@ export const useOrders = () => {
     return downloadFile(filePath, fileName);
   };
 
-  // Subscribe to real-time updates for employees and admins
   const subscribeToOrders = () => {
     const toast = useToast();
 
-    const channel = supabase
-      .channel("orders")
+    const role = profile.value?.role;
 
-      .on(
+    const channel = supabase.channel(`orders-${profile.value?.id ?? "anon"}`);
+
+    if (role === "customer") {
+      channel.on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
+          schema: "public",
+          table: "orders",
+          filter: `user_id=eq.${profile.value!.id}`,
+        },
+        async () => {
+          await fetchOrders();
+        },
+      );
+    }
+
+    if (role === "employee") {
+      channel
+        // assigned to me
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "orders",
+            filter: `assigned_to=eq.${profile.value!.id}`,
+          },
+          async () => {
+            await fetchOrders();
+          },
+        )
+
+        // new incoming unassigned orders
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "orders",
+            filter: "assigned_to=is.null",
+          },
+          async () => {
+            await fetchOrders();
+
+            toast.add({
+              title: "Đơn mới",
+              description: "Có đơn mới chưa được nhận",
+            });
+          },
+        );
+    }
+
+    if (role === "admin") {
+      channel.on(
+        "postgres_changes",
+        {
+          event: "*",
           schema: "public",
           table: "orders",
         },
         async () => {
           await fetchOrders();
-
-          toast.add({
-            title: "Đơn mới",
-            description: "Có tài liệu mới được tải lên",
-          });
         },
-      )
+      );
+    }
 
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-        },
-        async () => {
-          await fetchOrders();
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "reports",
+      },
+      async () => {
+        await fetchOrders();
+      },
+    );
 
-          toast.add({
-            title: "Cập nhật",
-            description: "Trạng thái đơn đã thay đổi",
-          });
-        },
-      )
-      .subscribe();
+    channel.subscribe((status) => {
+      console.log("Realtime:", status);
+    });
 
     return () => {
       supabase.removeChannel(channel);
