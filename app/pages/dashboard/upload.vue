@@ -30,6 +30,7 @@ const note = `
 ::tip
 Check đạo văn hoặc check AI tốn 1 credit.
 Check combo (cả AI + đạo văn) tốn 2 credits.
+Một file tương đương 1 lần check.
 ::
 `;
 
