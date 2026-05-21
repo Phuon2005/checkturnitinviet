@@ -1,5 +1,6 @@
 import { type Profile, type Order } from "~/types";
 
+// TODO: switch to pinia
 export const useOrders = () => {
   const supabase = useSupabaseClient();
   const { profile } = useUser();
@@ -34,7 +35,11 @@ export const useOrders = () => {
     } finally {
       loading.value = false;
     }
-    console.log("ORDERS", orders.value);
+    console.log("ORDERS", orders.value.filter(
+      (o) =>
+        !o.assigned_to &&
+        o.status !== "completed"
+    ));
   };
 
   const assignOrder = async (orderId: string) => {
@@ -205,6 +210,15 @@ export const useOrders = () => {
     };
   };
 
+  // TODO fix type instantiation loop inf
+  const unassignedCount = computed(() =>
+    orders.value.filter(
+      (o) =>
+        !o.assigned_to &&
+        o.status !== "completed"
+    ).length
+  );
+
   return {
     orders,
     loading,
@@ -213,5 +227,6 @@ export const useOrders = () => {
     submitReport,
     downloadDocument,
     subscribeToOrders,
+    unassignedCount
   };
 };

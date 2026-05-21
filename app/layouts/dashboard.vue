@@ -9,6 +9,7 @@ const logout = async () => {
 };
 
 const { isAdmin, isEmployee } = useUser();
+const { unassignedCount } = useOrders();
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -27,13 +28,13 @@ const items = computed<NavigationMenuItem[]>(() => [
     icon: "i-lucide-credit-card",
     to: "/dashboard/purchase",
   },
-  // TODO vvv put in number of orders badge
   ...(isEmployee.value || isAdmin.value
     ? [
         {
           label: "Các file cần check",
           icon: "i-lucide-briefcase",
           to: "/dashboard/work",
+          badge: unassignedCount.value
         },
       ]
     : []),
