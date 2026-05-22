@@ -11,7 +11,8 @@ useSeoMeta({
 });
 
 const { profile, isCustomer } = useUser();
-const { orders, fetchOrders, subscribeToOrders } = useOrders();
+const ordersStore = useOrdersStore();
+const { orders } = storeToRefs(ordersStore);
 const { settings } = useSettings();
 
 // const { data: page } = await useAsyncData('index', () => queryCollection('index').first())
@@ -22,8 +23,6 @@ const supportContacts = [
   { name: "Ken", region: "Kenya", method: "WA", href: "https://wa.me" },
 ];
 
-const unsubscribeOrders = ref<(() => void) | null>(null);
-
 const previewModal = ref(false)
 const selectedOrder = ref<Order | null>(null)
 
@@ -32,24 +31,6 @@ const openPreview = (order: Order) => {
   previewModal.value = true
   // TODO: modal should be more polished, looks ugly rn
 }
-
-watch(
-  isCustomer,
-  async (customer) => {
-    if (customer) {
-      await fetchOrders();
-      unsubscribeOrders.value = subscribeToOrders();
-    } else {
-      unsubscribeOrders.value?.();
-      unsubscribeOrders.value = null;
-    }
-  },
-  { immediate: true },
-);
-
-onUnmounted(() => {
-  unsubscribeOrders.value?.();
-});
 </script>
 <template>
   <UDashboardPanel id="dashboard" :ui="{ body: 'lg:py-8' }" v-if="profile">
@@ -120,7 +101,7 @@ onUnmounted(() => {
                 fileName:
                   selectedOrder.documents.original_filename,
                 fileSize:
-                  selectedOrder.documents.file_size,
+                  selectedOrder.documents.file_size ?? 0,
               }" :footer-text="selectedOrder.reports?.details?.notes
           " />
         </template>

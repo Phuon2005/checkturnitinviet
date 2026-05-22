@@ -12,14 +12,13 @@ useSeoMeta({
 });
 
 const { profile, isEmployee, isAdmin } = useUser();
+const ordersStore = useOrdersStore();
+const { orders } = storeToRefs(ordersStore);
 const {
-  orders,
-  fetchOrders,
   assignOrder,
   submitReport,
   downloadDocument,
-  subscribeToOrders,
-} = useOrders();
+} = ordersStore;
 const toast = useToast();
 
 const reportModal = ref(false);
@@ -92,36 +91,7 @@ const handleDownload = async (order: Order) => {
   }
 };
 
-const unsubscribeOrders = ref<(() => void) | null>(null);
 
-watch(
-  [isEmployee, isAdmin],
-  async ([employee, admin]) => {
-    if (employee || admin) {
-      await fetchOrders();
-    }
-  },
-  { immediate: true },
-);
-
-watch(
-  isEmployee,
-  (employee) => {
-    if (employee) {
-      unsubscribeOrders.value = subscribeToOrders() || null;
-    } else if (unsubscribeOrders.value) {
-      unsubscribeOrders.value();
-      unsubscribeOrders.value = null;
-    }
-  },
-  { immediate: true },
-);
-
-onUnmounted(() => {
-  if (unsubscribeOrders.value) {
-    unsubscribeOrders.value();
-  }
-});
 </script>
 
 <template>

@@ -8,8 +8,33 @@ const logout = async () => {
   await router.push("/");
 };
 
-const { isAdmin, isEmployee } = useUser();
-const { unassignedCount } = useOrders();
+const { isAdmin, isEmployee, profile } = useUser();
+const ordersStore = useOrdersStore();
+const { unassignedCount } = storeToRefs(ordersStore);
+
+const unsubscribeOrders = ref<(() => void) | null>(null);
+
+watch(
+  profile,
+  async (currentProfile) => {
+    if (unsubscribeOrders.value) {
+      unsubscribeOrders.value();
+      unsubscribeOrders.value = null;
+    }
+
+    if (currentProfile) {
+      await ordersStore.fetchOrders();
+      unsubscribeOrders.value = ordersStore.subscribeToOrders() || null;
+    }
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (unsubscribeOrders.value) {
+    unsubscribeOrders.value();
+  }
+});
 
 const items = computed<NavigationMenuItem[]>(() => [
   {

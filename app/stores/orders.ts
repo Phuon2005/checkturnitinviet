@@ -1,9 +1,10 @@
+import { defineStore } from "pinia";
 import { type Profile, type Order } from "~/types";
 
-// TODO: switch to pinia
-export const useOrders = () => {
+export const useOrdersStore = defineStore("orders", () => {
   const supabase = useSupabaseClient();
   const { profile } = useUser();
+  const toast = useToast();
 
   const orders = ref<Order[]>([]);
   const loading = ref(false);
@@ -35,11 +36,6 @@ export const useOrders = () => {
     } finally {
       loading.value = false;
     }
-    console.log("ORDERS", orders.value.filter(
-      (o) =>
-        !o.assigned_to &&
-        o.status !== "completed"
-    ));
   };
 
   const assignOrder = async (orderId: string) => {
@@ -96,7 +92,7 @@ export const useOrders = () => {
     await fetchOrders();
   };
 
-  const downloadFile = async (filePath: string, fileName: string) => {
+  const downloadDocument = async (filePath: string, fileName: string) => {
     const { data, error } = await supabase.storage
       .from("documents")
       .download(filePath);
@@ -113,13 +109,7 @@ export const useOrders = () => {
     URL.revokeObjectURL(url);
   };
 
-  const downloadDocument = async (filePath: string, fileName: string) => {
-    return downloadFile(filePath, fileName);
-  };
-
   const subscribeToOrders = () => {
-    const toast = useToast();
-
     const role = profile.value?.role;
 
     const channel = supabase.channel(`orders-${profile.value?.id ?? "anon"}`);
@@ -133,8 +123,26 @@ export const useOrders = () => {
           table: "orders",
           filter: `user_id=eq.${profile.value!.id}`,
         },
-        async () => {
+        async (payload: any) => {
           await fetchOrders();
+          if (
+            payload.eventType === "UPDATE" &&
+            payload.new.status !== payload.old?.status
+          ) {
+            if (payload.new.status === "completed") {
+              toast.add({
+                title: "Đơn hàng hoàn tất",
+                description: "Tài liệu của bạn đã được kiểm tra xong.",
+                color: "success",
+              });
+            } else if (payload.new.status === "processing") {
+              toast.add({
+                title: "Đang xử lý",
+                description: "Đơn hàng của bạn đang được nhân viên xử lý.",
+                color: "info",
+              });
+            }
+          }
         },
       );
     }
@@ -154,7 +162,6 @@ export const useOrders = () => {
             await fetchOrders();
           },
         )
-
         // new incoming unassigned orders
         .on(
           "postgres_changes",
@@ -210,13 +217,8 @@ export const useOrders = () => {
     };
   };
 
-  // TODO fix type instantiation loop inf
-  const unassignedCount = computed(() =>
-    orders.value.filter(
-      (o) =>
-        !o.assigned_to &&
-        o.status !== "completed"
-    ).length
+  const unassignedCount = computed<number>(() =>
+    orders.value.filter((o) => !o.assigned_to && o.status !== "completed").length,
   );
 
   return {
@@ -227,6 +229,6 @@ export const useOrders = () => {
     submitReport,
     downloadDocument,
     subscribeToOrders,
-    unassignedCount
+    unassignedCount,
   };
-};
+});

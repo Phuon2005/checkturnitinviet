@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { h, resolveComponent, computed, ref, onMounted, watch } from "vue";
+import type { TableColumn } from "@nuxt/ui";
+import { getPaginationRowModel, getFilteredRowModel } from "@tanstack/table-core";
 import type { Profile } from "~/types";
 
 definePageMeta({
@@ -89,6 +92,116 @@ const saveUser = async () => {
     isSaving.value = false;
   }
 };
+
+// Table configuration
+const UBadge = resolveComponent("UBadge");
+const UButton = resolveComponent("UButton");
+const UDropdownMenu = resolveComponent("UDropdownMenu");
+
+const table = useTemplateRef("table");
+
+const columnFilters = ref<{ id: string; value: string }[]>([]);
+const columnVisibility = ref({});
+
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 10,
+});
+
+// Filters
+const searchString = computed({
+  get: (): string => {
+    return (table.value?.tableApi?.getColumn("name")?.getFilterValue() as string) || "";
+  },
+  set: (value: string) => {
+    table.value?.tableApi?.getColumn("name")?.setFilterValue(value || undefined);
+  },
+});
+
+const roleFilter = ref("all");
+watch(() => roleFilter.value, (newVal) => {
+  if (!table.value?.tableApi) return;
+  const col = table.value.tableApi.getColumn("role");
+  if (!col) return;
+  if (newVal === "all") {
+    col.setFilterValue(undefined);
+  } else {
+    col.setFilterValue(newVal);
+  }
+});
+
+const getRowItems = (row: any) => [
+  {
+    label: "Chỉnh sửa",
+    icon: "i-lucide-edit-3",
+    onSelect() {
+      openEditModal(row.original);
+    }
+  },
+  {
+    label: "Copy ID",
+    icon: "i-lucide-copy",
+    onSelect() {
+      navigator.clipboard.writeText(row.original.id);
+      toast.add({ title: "Copied!", description: "Đã sao chép ID" });
+    }
+  }
+];
+
+const columns = computed<TableColumn<Profile>[]>(() => [
+  {
+    id: "name",
+    accessorFn: (row) => row.name || "Người dùng",
+    header: "Tên",
+    filterFn: "includesString",
+    cell: ({ row }) => row.original.name || "Người dùng",
+  },
+  {
+    id: "role",
+    accessorFn: (row) => row.role || "customer",
+    header: "Vai trò",
+    filterFn: "equalsString",
+    cell: ({ row }) => {
+      const role = row.original.role || "customer";
+      const color = role === "admin" ? "error" : role === "employee" ? "primary" : "success";
+      return h(UBadge, { color, variant: "subtle" }, () => role);
+    }
+  },
+  {
+    id: "credits",
+    accessorFn: (row) => row.credits || 0,
+    header: "Credits",
+    cell: ({ row }) => h("span", { class: "font-semibold" }, row.original.credits || 0),
+  },
+  {
+    id: "created_at",
+    accessorFn: (row) => row.created_at,
+    header: "Ngày tham gia",
+    cell: ({ row }) => new Date(row.original.created_at || "").toLocaleDateString("vi-VN"),
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => {
+      return h("div", { class: "text-right" }, [
+        h(
+          UDropdownMenu,
+          {
+            content: { align: "end" },
+            items: getRowItems(row)
+          },
+          () => h(UButton, {
+            icon: "i-lucide-ellipsis-vertical",
+            color: "neutral",
+            variant: "ghost",
+            class: "ml-auto"
+          })
+        )
+      ]);
+    }
+  }
+]);
+
 </script>
 
 <template>
@@ -108,92 +221,114 @@ const saveUser = async () => {
             </UButton>
           </div>
         </template>
-        <div class="overflow-x-auto">
-          <table
-            class="min-w-full divide-y divide-slate-200 dark:divide-slate-700"
+        
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-1.5 p-4 pb-0">
+            <UInput
+              v-model="searchString"
+              class="max-w-sm"
+              icon="i-lucide-search"
+              placeholder="Tìm kiếm người dùng..."
+            />
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              <USelect
+                v-model="roleFilter"
+                :items="[
+                  { label: 'Tất cả vai trò', value: 'all' },
+                  { label: 'Khách hàng', value: 'customer' },
+                  { label: 'Nhân viên', value: 'employee' },
+                  { label: 'Admin', value: 'admin' }
+                ]"
+                placeholder="Lọc vai trò"
+                class="min-w-36"
+              />
+
+              <UDropdownMenu
+                :items="
+                  table?.tableApi
+                    ?.getAllColumns()
+                    .filter((column: any) => column.getCanHide())
+                    .map((column: any) => ({
+                      label: column.id.charAt(0).toUpperCase() + column.id.slice(1),
+                      type: 'checkbox' as const,
+                      checked: column.getIsVisible(),
+                      onUpdateChecked(checked: boolean) {
+                        table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
+                      },
+                      onSelect(e?: Event) {
+                        e?.preventDefault()
+                      }
+                    })) || []
+                "
+                :content="{ align: 'end' }"
+              >
+                <UButton
+                  label="Hiển thị"
+                  color="neutral"
+                  variant="outline"
+                  trailing-icon="i-lucide-settings-2"
+                />
+              </UDropdownMenu>
+            </div>
+          </div>
+
+          <UTable
+            ref="table"
+            v-model:column-filters="columnFilters"
+            v-model:column-visibility="columnVisibility"
+            v-model:pagination="pagination"
+            :pagination-options="{
+              getPaginationRowModel: getPaginationRowModel()
+            }"
+            :data="users"
+            :columns="columns"
+            :loading="loading"
+            class="shrink-0"
+            :ui="{
+              base: 'table-fixed border-separate border-spacing-0 border-t border-default',
+              thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+              tbody: '[&>tr]:last:[&>td]:border-b-0',
+              th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+              tr: 'hover:bg-elevated/50 transition',
+              td: 'border-b border-default px-4',
+            }"
           >
-            <thead
-              class="bg-slate-50 text-left text-xs uppercase tracking-[0.16em] text-slate-500 dark:bg-slate-900 dark:text-slate-400"
-            >
-              <tr>
-                <th class="px-4 py-3">Tên</th>
-                <th class="px-4 py-3">Vai trò</th>
-                <th class="px-4 py-3">Credits</th>
-                <th class="px-4 py-3">Ngày tham gia</th>
-                <th class="px-4 py-3 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody
-              class="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-950"
-            >
-              <tr v-for="user in users" :key="user.id">
-                <td
-                  class="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white"
-                >
-                  {{ user.name || "Người dùng" }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm">
-                  <span
-                    :class="[
-                      'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset',
-                      user.role === 'admin'
-                        ? 'bg-red-50 text-red-700 ring-red-600/10 dark:bg-red-900/20 dark:text-red-400'
-                        : user.role === 'employee'
-                          ? 'bg-blue-50 text-blue-700 ring-blue-600/10 dark:bg-blue-900/20 dark:text-blue-400'
-                          : 'bg-green-50 text-green-700 ring-green-600/10 dark:bg-green-900/20 dark:text-green-400',
-                    ]"
-                  >
-                    {{ user.role || "customer" }}
-                  </span>
-                </td>
-                <td
-                  class="px-4 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300"
-                >
-                  <span class="font-semibold">{{ user.credits || 0 }}</span>
-                </td>
-                <td
-                  class="px-4 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300"
-                >
-                  {{
-                    new Date(user.created_at || "").toLocaleDateString("vi-VN")
-                  }}
-                </td>
-                <td
-                  class="px-4 py-4 whitespace-nowrap text-sm text-right space-x-2"
-                >
-                  <UButton
-                    size="sm"
-                    variant="outline"
-                    color="primary"
-                    @click="openEditModal(user)"
-                  >
-                    Chỉnh sửa
-                  </UButton>
-                </td>
-              </tr>
-              <tr v-if="users.length === 0 && !loading">
-                <td
-                  colspan="5"
-                  class="px-4 py-8 text-center text-sm text-slate-500"
-                >
-                  Không tìm thấy người dùng.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            <template #empty>
+              <div class="py-8 text-center text-muted">
+                Không tìm thấy người dùng.
+              </div>
+            </template>
+          </UTable>
+
+          <div class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto">
+            <div class="text-sm text-muted">
+              Hiển thị {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} kết quả.
+            </div>
+
+            <div class="flex items-center gap-1.5" v-if="table?.tableApi && table.tableApi.getFilteredRowModel().rows.length > pagination.pageSize">
+              <UPagination
+                :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+                :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+                :total="table?.tableApi?.getFilteredRowModel().rows.length"
+                @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+              />
+            </div>
+          </div>
         </div>
       </UCard>
 
-      <!-- <UModal v-model="editModal">
-        <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Chỉnh sửa người dùng</h3>
-            <p class="text-sm text-slate-500">{{ currentUser?.name }}</p>
-          </template>
-
+      <UModal v-model:open="editModal">
+        <template #header>
+          <div class="font-semibold">
+            Chỉnh sửa người dùng
+          </div>
+          <p class="text-sm text-slate-500">{{ currentUser?.name }}</p>
+        </template>
+        <template #body>
           <form @submit.prevent="saveUser" class="space-y-4">
             <UFormField label="Vai trò">
-              <USelect v-model="editForm.role" :options="[
+              <USelect v-model="editForm.role" :items="[
                 { label: 'Khách hàng', value: 'customer' },
                 { label: 'Nhân viên', value: 'employee' },
                 { label: 'Admin', value: 'admin' }
@@ -209,8 +344,8 @@ const saveUser = async () => {
               <UButton type="submit" color="primary" :loading="isSaving">Lưu thay đổi</UButton>
             </div>
           </form>
-        </UCard>
-      </UModal> -->
+        </template>
+      </UModal>
     </template>
   </UDashboardPanel>
 </template>
