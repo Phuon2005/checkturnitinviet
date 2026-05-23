@@ -39,3 +39,14 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant permissions for authenticated users to run these RPCs
+GRANT EXECUTE ON FUNCTION get_revenue_sum(TIMESTAMPTZ, TIMESTAMPTZ) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_revenue_sum(TIMESTAMPTZ, TIMESTAMPTZ) TO service_role;
+
+GRANT EXECUTE ON FUNCTION get_revenue_by_period(TIMESTAMPTZ, TIMESTAMPTZ, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_revenue_by_period(TIMESTAMPTZ, TIMESTAMPTZ, TEXT) TO service_role;
+
+-- Ensure previously created RPCs also have correct permissions
+GRANT EXECUTE ON FUNCTION create_order_securely(TEXT, TEXT, INT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION create_order_securely(TEXT, TEXT, INT, TEXT, TEXT) TO service_role;
