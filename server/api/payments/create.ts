@@ -31,7 +31,7 @@ export default eventHandler(async (event) => {
     }).parse,
   );
 
-  const supabase = serverSupabaseClient(event);
+  const supabase = serverSupabaseServiceRole(event);
   const config = useRuntimeConfig();
 
   const tmnCode = config.vnpayTmnCode;
