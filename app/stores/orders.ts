@@ -1,4 +1,6 @@
 import { defineStore } from "pinia";
+import { ref, watch } from "vue";
+import { refDebounced } from "@vueuse/core";
 import { type Profile, type Order } from "~/types";
 
 export const useOrdersStore = defineStore("orders", () => {
@@ -8,7 +10,25 @@ export const useOrdersStore = defineStore("orders", () => {
   const { playSound } = useNotificationSound();
 
   const orders = ref<Order[]>([]);
+  const totalOrders = ref(0);
   const loading = ref(false);
+
+  // Pagination & Filtering state
+  const pagination = ref({ pageIndex: 0, pageSize: 10 });
+  const filters = ref({
+    fileName: "",
+    status: "all",
+    checkType: "all",
+  });
+  const debouncedFileName = refDebounced(() => filters.value.fileName, 500);
+
+  watch([debouncedFileName, () => filters.value.status, () => filters.value.checkType, () => pagination.value.pageSize], () => {
+    pagination.value.pageIndex = 0;
+  });
+
+  watch([debouncedFileName, () => filters.value.status, () => filters.value.checkType, () => pagination.value.pageIndex, () => pagination.value.pageSize], () => {
+    fetchOrders();
+  });
 
   const fetchOrders = async () => {
     loading.value = true;
@@ -18,22 +38,37 @@ export const useOrdersStore = defineStore("orders", () => {
       if (profile.value?.role === "customer") {
         query = supabase
           .from("orders")
-          .select(`*, documents(*), reports(*)`)
+          .select(`*, documents!inner(*), reports(*)`, { count: "exact" })
           .eq("user_id", profile.value.id);
       } else {
         query = supabase
           .from("orders")
           .select(
-            `*, documents(*), customer:profiles!orders_user_id_fkey(*), assignee:profiles!orders_assigned_to_fkey(*), reports(*)`,
+            `*, documents!inner(*), customer:profiles!orders_user_id_fkey(*), assignee:profiles!orders_assigned_to_fkey(*), reports(*)`,
+            { count: "exact" }
           );
       }
 
-      const { data, error } = await query.order("created_at", {
+      if (debouncedFileName.value) {
+        query = query.ilike("documents.original_filename", `%${debouncedFileName.value}%`);
+      }
+      if (filters.value.status !== "all") {
+        query = query.eq("status", filters.value.status);
+      }
+      if (filters.value.checkType !== "all") {
+        query = query.eq("check_type", filters.value.checkType);
+      }
+
+      const from = pagination.value.pageIndex * pagination.value.pageSize;
+      const to = from + pagination.value.pageSize - 1;
+
+      const { data, count, error } = await query.order("created_at", {
         ascending: false,
-      }).limit(200);
+      }).range(from, to);
 
       if (error) throw error;
       orders.value = (data as unknown as Order[]) || [];
+      totalOrders.value = count || 0;
     } finally {
       loading.value = false;
     }
@@ -277,6 +312,9 @@ export const useOrdersStore = defineStore("orders", () => {
 
   return {
     orders,
+    totalOrders,
+    pagination,
+    filters,
     loading,
     fetchOrders,
     assignOrder,

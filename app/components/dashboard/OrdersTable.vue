@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { h, resolveComponent, computed, ref, watch } from "vue";
+import { h, resolveComponent, computed } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { formatBytes, formatDateTime } from "~/utils/formatters";
 import type { Order } from "~/types";
-import { getPaginationRowModel, getFilteredRowModel } from "@tanstack/table-core";
 
 const props = defineProps<{
   orders: Order[];
@@ -21,48 +20,13 @@ const emit = defineEmits<{
 const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
 
+const ordersStore = useOrdersStore();
+const { filters, pagination, totalOrders } = storeToRefs(ordersStore);
+
 const table = useTemplateRef("table");
 
 const columnFilters = ref<{ id: string; value: string }[]>([]);
 const columnVisibility = ref({});
-
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 10,
-});
-
-const fileName = computed({
-  get: (): string => {
-    return (table.value?.tableApi?.getColumn("file")?.getFilterValue() as string) || "";
-  },
-  set: (value: string) => {
-    table.value?.tableApi?.getColumn("file")?.setFilterValue(value || undefined);
-  },
-});
-
-const statusFilter = ref("all");
-watch(() => statusFilter.value, (newVal) => {
-  if (!table.value?.tableApi) return;
-  const col = table.value.tableApi.getColumn("status");
-  if (!col) return;
-  if (newVal === "all") {
-    col.setFilterValue(undefined);
-  } else {
-    col.setFilterValue(newVal);
-  }
-});
-
-const checkTypeFilter = ref("all");
-watch(() => checkTypeFilter.value, (newVal) => {
-  if (!table.value?.tableApi) return;
-  const col = table.value.tableApi.getColumn("check_type");
-  if (!col) return;
-  if (newVal === "all") {
-    col.setFilterValue(undefined);
-  } else {
-    col.setFilterValue(newVal);
-  }
-});
 
 const columns = computed<TableColumn<Order>[]>(() => {
   const cols: TableColumn<Order>[] = [
@@ -70,13 +34,11 @@ const columns = computed<TableColumn<Order>[]>(() => {
       id: "file",
       accessorFn: (row) => row.documents.original_filename,
       header: "File",
-      filterFn: "includesString",
     },
     {
       id: "check_type",
       accessorFn: (row) => row.check_type,
       header: "Loại",
-      filterFn: "equalsString",
       cell: ({ row }) => {
         const type = row.original.check_type as "ai" | "similarity" | "combo" | null;
 
@@ -155,7 +117,6 @@ const columns = computed<TableColumn<Order>[]>(() => {
       id: "status",
       accessorFn: (row) => row.status || "pending",
       header: "Trạng thái",
-      filterFn: "equalsString",
       cell: ({ row }) => {
         const status = row.original.status || "pending";
 
@@ -267,7 +228,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
   <div class="flex flex-col gap-4">
     <div class="flex flex-wrap items-center justify-between gap-1.5 p-4 pb-0">
       <UInput
-        v-model="fileName"
+        v-model="filters.fileName"
         class="max-w-sm"
         icon="i-lucide-search"
         placeholder="Tìm kiếm file..."
@@ -275,7 +236,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
 
       <div class="flex flex-wrap items-center gap-1.5">
         <USelect
-          v-model="statusFilter"
+          v-model="filters.status"
           :items="[
             { label: 'Tất cả trạng thái', value: 'all' },
             { label: 'Hoàn tất', value: 'completed' },
@@ -288,7 +249,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
         />
 
         <USelect
-          v-model="checkTypeFilter"
+          v-model="filters.checkType"
           :items="[
             { label: 'Tất cả loại', value: 'all' },
             { label: 'AI', value: 'ai' },
@@ -332,10 +293,6 @@ const columns = computed<TableColumn<Order>[]>(() => {
       ref="table"
       v-model:column-filters="columnFilters"
       v-model:column-visibility="columnVisibility"
-      v-model:pagination="pagination"
-      :pagination-options="{
-        getPaginationRowModel: getPaginationRowModel()
-      }"
       :data="orders"
       :columns="columns"
       class="shrink-0"
@@ -358,15 +315,15 @@ const columns = computed<TableColumn<Order>[]>(() => {
 
     <div class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto">
       <div class="text-sm text-muted">
-        Hiển thị {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} kết quả.
+        Hiển thị {{ totalOrders || 0 }} kết quả.
       </div>
 
-      <div class="flex items-center gap-1.5" v-if="table?.tableApi && table.tableApi.getFilteredRowModel().rows.length > pagination.pageSize">
+      <div class="flex items-center gap-1.5" v-if="totalOrders > pagination.pageSize">
         <UPagination
-          :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-          :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-          :total="table?.tableApi?.getFilteredRowModel().rows.length"
-          @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+          :default-page="pagination.pageIndex + 1"
+          :items-per-page="pagination.pageSize"
+          :total="totalOrders"
+          @update:page="(p: number) => { pagination.pageIndex = p - 1 }"
         />
       </div>
     </div>

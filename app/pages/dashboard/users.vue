@@ -361,7 +361,6 @@ const columns = computed<TableColumn<Profile>[]>(() => [
             ref="table"
             v-model:column-filters="columnFilters"
             v-model:column-visibility="columnVisibility"
-            v-model:pagination="pagination"
             :data="users"
             :columns="columns"
             :loading="loading"
