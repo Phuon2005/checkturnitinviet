@@ -67,14 +67,14 @@ export default eventHandler(async (event) => {
     return { code: "01", message: "Order not found" };
   }
 
-  if (!payment.credits_added)
-    return {
-      // TODO: throw proper err
-    };
-  if (!payment.user_id)
-    return {
-      // TODO: throw proper err
-    };
+  if (!payment.credits_added) {
+    console.error("Payment has no credits_added:", transactionId);
+    return { code: "99", message: "Invalid payment record: missing credits_added" };
+  }
+  if (!payment.user_id) {
+    console.error("Payment has no user_id:", transactionId);
+    return { code: "99", message: "Invalid payment record: missing user_id" };
+  }
 
   // Check if payment was already processed (idempotency)
   if (payment.status === "completed") {
@@ -106,7 +106,10 @@ export default eventHandler(async (event) => {
         })
         .eq("id", payment.id);
 
-      if (updatePaymentError) return {}; // TODO: throw proper err
+      if (updatePaymentError) {
+        console.error("Error updating payment status:", updatePaymentError);
+        return { code: "99", message: "Error updating payment status" };
+      }
 
       // Add credits to user profile
       const { data: profile } = await supabase

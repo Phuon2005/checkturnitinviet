@@ -16,11 +16,12 @@ export default eventHandler(async (event) => {
 
   const user = await serverSupabaseUser(event);
 
-  if (!user)
+  if (!user) {
     throw createError({
       statusCode: 401,
-      // TODO: statusmsg too lazy man
+      statusMessage: "Unauthorized: You must be logged in to create a user.",
     });
+  }
 
   const supabaseAdmin = serverSupabaseServiceRole(event);
 
@@ -37,7 +38,12 @@ export default eventHandler(async (event) => {
     });
   }
 
-  if (profile?.role !== "admin") return null; // TODO throw createError too lazy....
+  if (profile?.role !== "admin") {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Forbidden: Only administrators can create new users.",
+    });
+  }
 
   const { data, error: error2 } = await supabaseAdmin.auth.admin.createUser({
     email: body.email,

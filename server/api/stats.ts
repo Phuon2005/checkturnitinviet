@@ -9,7 +9,12 @@ import { z } from "zod";
 export default eventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
 
-  if (!user) return null;
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+    });
+  }
 
   const supabase = await serverSupabaseClient(event);
 
@@ -26,7 +31,12 @@ export default eventHandler(async (event) => {
     });
   }
 
-  if (profile?.role !== "admin") return null;
+  if (profile?.role !== "admin") {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Forbidden: Admin access required",
+    });
+  }
 
   const query = await getValidatedQuery(
     event,
