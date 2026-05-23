@@ -15,14 +15,14 @@ const { unassignedCount } = storeToRefs(ordersStore);
 const unsubscribeOrders = ref<(() => void) | null>(null);
 
 watch(
-  profile,
-  async (currentProfile) => {
+  () => profile.value ? `${profile.value.id}-${profile.value.role}` : null,
+  async (currentProfileKey) => {
     if (unsubscribeOrders.value) {
       unsubscribeOrders.value();
       unsubscribeOrders.value = null;
     }
 
-    if (currentProfile) {
+    if (currentProfileKey) {
       await ordersStore.fetchOrders();
       unsubscribeOrders.value = ordersStore.subscribeToOrders() || null;
     }

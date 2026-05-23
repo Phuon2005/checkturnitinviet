@@ -122,87 +122,64 @@ export const useOrdersStore = defineStore("orders", () => {
     const channelName = `orders-${profile.value?.id ?? "anon"}-${Date.now()}`;
     const channel = supabase.channel(channelName);
 
-    if (role === "customer") {
-      channel.on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-          filter: `user_id=eq.${profile.value!.id}`,
-        },
-        async (payload: any) => {
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "orders",
+      },
+      async (payload: any) => {
+        // Customer logic
+        if (role === "customer") {
+          if (payload.new?.user_id !== profile.value!.id && payload.old?.user_id !== profile.value!.id) {
+            return; // Not my order
+          }
+          
+          if (payload.eventType === "UPDATE") {
+            const oldOrder = orders.value.find((o) => o.id === payload.new.id);
+            if (oldOrder && oldOrder.status !== payload.new.status) {
+              if (payload.new.status === "completed") {
+                toast.add({
+                  title: "Đơn hàng hoàn tất",
+                  description: "Tài liệu của bạn đã được kiểm tra xong.",
+                  color: "success",
+                });
+              } else if (payload.new.status === "processing") {
+                toast.add({
+                  title: "Đang xử lý",
+                  description: "Đơn hàng của bạn đang được nhân viên xử lý.",
+                  color: "info",
+                });
+              }
+            }
+          }
           await fetchOrders();
-          if (
-            payload.eventType === "UPDATE" &&
-            payload.new.status !== payload.old?.status
-          ) {
-            if (payload.new.status === "completed") {
+        }
+
+        // Employee logic
+        if (role === "employee") {
+          const isAssignedToMe = payload.new?.assigned_to === profile.value!.id || payload.old?.assigned_to === profile.value!.id;
+          const isNewUnassigned = payload.eventType === "INSERT" && payload.new?.assigned_to === null;
+          
+          if (isAssignedToMe || isNewUnassigned) {
+            await fetchOrders();
+            
+            if (isNewUnassigned) {
               toast.add({
-                title: "Đơn hàng hoàn tất",
-                description: "Tài liệu của bạn đã được kiểm tra xong.",
-                color: "success",
-              });
-            } else if (payload.new.status === "processing") {
-              toast.add({
-                title: "Đang xử lý",
-                description: "Đơn hàng của bạn đang được nhân viên xử lý.",
-                color: "info",
+                title: "Đơn mới",
+                description: "Có đơn mới chưa được nhận",
               });
             }
           }
-        },
-      );
-    }
+        }
 
-    if (role === "employee") {
-      channel
-        // assigned to me
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "orders",
-            filter: `assigned_to=eq.${profile.value!.id}`,
-          },
-          async () => {
-            await fetchOrders();
-          },
-        )
-        // new incoming unassigned orders
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "orders",
-            filter: "assigned_to=is.null",
-          },
-          async () => {
-            await fetchOrders();
-
-            toast.add({
-              title: "Đơn mới",
-              description: "Có đơn mới chưa được nhận",
-            });
-          },
-        );
-    }
-
-    if (role === "admin") {
-      channel.on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-        },
-        async () => {
+        // Admin logic
+        if (role === "admin") {
           await fetchOrders();
-        },
-      );
-    }
+        }
+      }
+    );
 
     channel.on(
       "postgres_changes",
