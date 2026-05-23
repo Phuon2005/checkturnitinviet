@@ -71,8 +71,8 @@ const openPreview = (order: Order) => {
           </div>
         </UCard>
       </div>
-      <UCard>
-        <template #header>
+      <div>
+        <!-- <template #header> -->
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 class="text-xl font-semibold text-slate-900 dark:text-white"></h2>
@@ -82,11 +82,11 @@ const openPreview = (order: Order) => {
             </div>
             <UButton to="/dashboard/upload" variant="outline" icon="i-lucide-file-up">Tải lên tài liệu mới</UButton>
           </div>
-        </template>
+        <!-- </template> -->
 
-        <DashboardOrdersTable :orders="orders" user-role="customer" :profile-id="profile?.id" @view="openPreview">
+        <DashboardOrdersTable :orders="orders.filter(o => o.user_id === profile?.id)" user-role="customer" :profile-id="profile?.id" @view="openPreview">
         </DashboardOrdersTable>
-      </UCard>
+      </div>
       <UModal v-model:open="previewModal" :ui="{ content: 'max-w-2xl' }">
         <template #header>
           <div class="font-semibold">

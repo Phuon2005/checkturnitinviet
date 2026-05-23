@@ -97,18 +97,10 @@ const handleDownload = async (order: Order) => {
 <template>
   <UDashboardPanel id="work" :ui="{ body: 'lg:py-8' }">
     <template #body>
-      <UCard>
-        <DashboardOrdersTable
-          :orders="orders"
-          user-role="employee"
-          :profile-id="profile!.id"
-          @assign="handleAssignOrder"
-          @download-document="handleDownload"
-          @submit-report="openReportModal"
-        >
-          // TODO ^^ LOL
-        </DashboardOrdersTable>
-      </UCard>
+      <DashboardOrdersTable :orders="orders" user-role="employee" :profile-id="profile!.id" @assign="handleAssignOrder"
+        @download-document="handleDownload" @submit-report="openReportModal">
+        // TODO ^^ LOL
+      </DashboardOrdersTable>
 
       <UModal v-model:open="reportModal">
         <template #header>
@@ -124,21 +116,13 @@ const handleDownload = async (order: Order) => {
             <div class="text-center mt-2">{{ similarityScore }}%</div>
           </UFormField>
           <UFormField label="Ghi chú thêm">
-            <UTextarea
-              v-model="notes"
-              placeholder="Nhập ghi chú về báo cáo..."
-              :rows="3"
-            />
+            <UTextarea v-model="notes" placeholder="Nhập ghi chú về báo cáo..." :rows="3" />
           </UFormField>
         </template>
         <template #footer>
           <div class="flex justify-end gap-2">
-            <UButton variant="outline" @click="reportModal = false"
-              >Hủy</UButton
-            >
-            <UButton color="primary" @click="submitOrderReport"
-              >Nộp báo cáo</UButton
-            >
+            <UButton variant="outline" @click="reportModal = false">Hủy</UButton>
+            <UButton color="primary" @click="submitOrderReport">Nộp báo cáo</UButton>
           </div>
         </template>
       </UModal>
