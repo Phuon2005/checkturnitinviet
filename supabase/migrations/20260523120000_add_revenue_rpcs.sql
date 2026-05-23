@@ -17,21 +17,21 @@ RETURNS TABLE (period_date TIMESTAMPTZ, total_amount NUMERIC) AS $$
 BEGIN
   IF p_period = 'daily' THEN
     RETURN QUERY
-      SELECT date_trunc('day', created_at) AS period_date, COALESCE(SUM(amount), 0) AS total_amount
+      SELECT date_trunc('day', created_at) AS period_date, COALESCE(SUM(amount), 0)::NUMERIC AS total_amount
       FROM payments
       WHERE status = 'completed' AND created_at >= start_date AND created_at <= end_date
       GROUP BY date_trunc('day', created_at)
       ORDER BY period_date;
   ELSIF p_period = 'weekly' THEN
     RETURN QUERY
-      SELECT date_trunc('week', created_at) AS period_date, COALESCE(SUM(amount), 0) AS total_amount
+      SELECT date_trunc('week', created_at) AS period_date, COALESCE(SUM(amount), 0)::NUMERIC AS total_amount
       FROM payments
       WHERE status = 'completed' AND created_at >= start_date AND created_at <= end_date
       GROUP BY date_trunc('week', created_at)
       ORDER BY period_date;
   ELSIF p_period = 'monthly' THEN
     RETURN QUERY
-      SELECT date_trunc('month', created_at) AS period_date, COALESCE(SUM(amount), 0) AS total_amount
+      SELECT date_trunc('month', created_at) AS period_date, COALESCE(SUM(amount), 0)::NUMERIC AS total_amount
       FROM payments
       WHERE status = 'completed' AND created_at >= start_date AND created_at <= end_date
       GROUP BY date_trunc('month', created_at)
