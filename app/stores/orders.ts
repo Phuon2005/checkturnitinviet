@@ -109,10 +109,18 @@ export const useOrdersStore = defineStore("orders", () => {
     URL.revokeObjectURL(url);
   };
 
+  let activeChannel: any = null;
+
   const subscribeToOrders = () => {
+    if (activeChannel) {
+      supabase.removeChannel(activeChannel);
+      activeChannel = null;
+    }
+
     const role = profile.value?.role;
 
-    const channel = supabase.channel(`orders-${profile.value?.id ?? "anon"}`);
+    const channelName = `orders-${profile.value?.id ?? "anon"}-${Date.now()}`;
+    const channel = supabase.channel(channelName);
 
     if (role === "customer") {
       channel.on(
@@ -212,8 +220,13 @@ export const useOrdersStore = defineStore("orders", () => {
       console.log("Realtime:", status);
     });
 
+    activeChannel = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (activeChannel === channel) {
+        supabase.removeChannel(channel);
+        activeChannel = null;
+      }
     };
   };
 

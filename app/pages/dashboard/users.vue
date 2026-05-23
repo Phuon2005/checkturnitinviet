@@ -93,6 +93,66 @@ const saveUser = async () => {
   }
 };
 
+// Add User Modal
+const addModal = ref(false);
+const addForm = ref({
+  name: "",
+  role: "customer",
+  credits: 0,
+});
+const isAdding = ref(false);
+
+const addUser = async () => {
+  isAdding.value = true;
+  try {
+    const { error } = await supabase.from("profiles").insert({
+      id: crypto.randomUUID(),
+      name: addForm.value.name,
+      role: addForm.value.role,
+      credits: addForm.value.credits,
+    });
+
+    if (error) throw error;
+
+    toast.add({ title: "Thành công", description: "Đã thêm người dùng", color: "primary" });
+    addModal.value = false;
+    addForm.value = { name: "", role: "customer", credits: 0 };
+    await fetchUsers();
+  } catch (error: unknown) {
+    const err = error as Error;
+    toast.add({ title: "Lỗi", description: err.message, color: "error" });
+  } finally {
+    isAdding.value = false;
+  }
+};
+
+// Delete User Modal
+const deleteModal = ref(false);
+const userToDelete = ref<Profile | null>(null);
+const isDeleting = ref(false);
+
+const openDeleteModal = (user: Profile) => {
+  userToDelete.value = user;
+  deleteModal.value = true;
+};
+
+const deleteUser = async () => {
+  if (!userToDelete.value) return;
+  isDeleting.value = true;
+  try {
+    const { error } = await supabase.from("profiles").delete().eq("id", userToDelete.value.id);
+    if (error) throw error;
+    toast.add({ title: "Thành công", description: "Đã xóa người dùng", color: "primary" });
+    deleteModal.value = false;
+    await fetchUsers();
+  } catch (error: unknown) {
+    const err = error as Error;
+    toast.add({ title: "Lỗi", description: err.message, color: "error" });
+  } finally {
+    isDeleting.value = false;
+  }
+};
+
 // Table configuration
 const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
@@ -144,6 +204,14 @@ const getRowItems = (row: any) => [
     onSelect() {
       navigator.clipboard.writeText(row.original.id);
       toast.add({ title: "Copied!", description: "Đã sao chép ID" });
+    }
+  },
+  {
+    label: "Xóa",
+    icon: "i-lucide-trash",
+    color: "error" as const,
+    onSelect() {
+      openDeleteModal(row.original);
     }
   }
 ];
@@ -211,14 +279,23 @@ const columns = computed<TableColumn<Profile>[]>(() => [
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">Quản lý người dùng</h2>
-            <UButton
-              color="neutral"
-              icon="i-lucide-refresh-cw"
-              @click="fetchUsers"
-              :loading="loading"
-            >
-              Làm mới
-            </UButton>
+            <div class="flex items-center gap-2">
+              <UButton
+                color="primary"
+                icon="i-lucide-plus"
+                @click="addModal = true"
+              >
+                Thêm người dùng
+              </UButton>
+              <UButton
+                color="neutral"
+                icon="i-lucide-refresh-cw"
+                @click="fetchUsers"
+                :loading="loading"
+              >
+                Làm mới
+              </UButton>
+            </div>
           </div>
         </template>
         
@@ -344,6 +421,46 @@ const columns = computed<TableColumn<Profile>[]>(() => [
               <UButton type="submit" color="primary" :loading="isSaving">Lưu thay đổi</UButton>
             </div>
           </form>
+        </template>
+      </UModal>
+
+      <UModal v-model:open="addModal">
+        <template #header>
+          <div class="font-semibold">Thêm người dùng</div>
+        </template>
+        <template #body>
+          <form @submit.prevent="addUser" class="space-y-4">
+            <UFormField label="Tên">
+              <UInput v-model="addForm.name" placeholder="Nhập tên người dùng" required />
+            </UFormField>
+            <UFormField label="Vai trò">
+              <USelect v-model="addForm.role" :items="[
+                { label: 'Khách hàng', value: 'customer' },
+                { label: 'Nhân viên', value: 'employee' },
+                { label: 'Admin', value: 'admin' }
+              ]" />
+            </UFormField>
+            <UFormField label="Credits">
+              <UInput v-model="addForm.credits" type="number" min="0" required />
+            </UFormField>
+            <div class="flex justify-end gap-2 pt-4">
+              <UButton variant="outline" @click="addModal = false">Hủy</UButton>
+              <UButton type="submit" color="primary" :loading="isAdding">Thêm</UButton>
+            </div>
+          </form>
+        </template>
+      </UModal>
+
+      <UModal v-model:open="deleteModal">
+        <template #header>
+          <div class="font-semibold">Xóa người dùng</div>
+        </template>
+        <template #body>
+          <p>Bạn có chắc chắn muốn xóa người dùng <span class="font-semibold">{{ userToDelete?.name || 'này' }}</span> không?</p>
+          <div class="flex justify-end gap-2 pt-4">
+            <UButton variant="outline" @click="deleteModal = false">Hủy</UButton>
+            <UButton color="error" @click="deleteUser" :loading="isDeleting">Xóa</UButton>
+          </div>
         </template>
       </UModal>
     </template>
