@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { h, resolveComponent, computed, ref, onMounted, watch } from "vue";
 import type { TableColumn } from "@nuxt/ui";
-import { getPaginationRowModel, getFilteredRowModel } from "@tanstack/table-core";
+import { getFilteredRowModel } from "@tanstack/table-core";
+import { refDebounced } from "@vueuse/core";
 import type { Profile } from "~/types";
 
 definePageMeta({
@@ -19,19 +20,34 @@ const toast = useToast();
 const supabase = useSupabaseClient();
 
 const users = ref<Profile[]>([]);
+const total = ref(0);
 const loading = ref(false);
 
 const fetchUsers = async () => {
   loading.value = true;
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("profiles")
-      .select("*")
+      .select("*", { count: "exact" });
+      
+    if (debouncedSearch.value) {
+      query = query.ilike("name", `%${debouncedSearch.value}%`);
+    }
+    
+    if (roleFilter.value !== "all") {
+      query = query.eq("role", roleFilter.value);
+    }
+    
+    const from = pagination.value.pageIndex * pagination.value.pageSize;
+    const to = from + pagination.value.pageSize - 1;
+
+    const { data, count, error } = await query
       .order("created_at", { ascending: false })
-      .limit(200);
+      .range(from, to);
 
     if (error) throw error;
     users.value = data as Profile[];
+    total.value = count || 0;
   } catch (error: unknown) {
     const err = error as Error;
     toast.add({ title: "Lỗi", description: err.message, color: "error" });
@@ -170,25 +186,17 @@ const pagination = ref({
 });
 
 // Filters
-const searchString = computed({
-  get: (): string => {
-    return (table.value?.tableApi?.getColumn("name")?.getFilterValue() as string) || "";
-  },
-  set: (value: string) => {
-    table.value?.tableApi?.getColumn("name")?.setFilterValue(value || undefined);
-  },
-});
+const searchString = ref("");
+const debouncedSearch = refDebounced(searchString, 500);
 
 const roleFilter = ref("all");
-watch(() => roleFilter.value, (newVal) => {
-  if (!table.value?.tableApi) return;
-  const col = table.value.tableApi.getColumn("role");
-  if (!col) return;
-  if (newVal === "all") {
-    col.setFilterValue(undefined);
-  } else {
-    col.setFilterValue(newVal);
-  }
+
+watch([debouncedSearch, roleFilter, () => pagination.value.pageSize], () => {
+  pagination.value.pageIndex = 0; // reset page on filter change
+});
+
+watch([debouncedSearch, roleFilter, () => pagination.value.pageIndex, () => pagination.value.pageSize], () => {
+  fetchUsers();
 });
 
 const getRowItems = (row: any) => [
@@ -222,14 +230,12 @@ const columns = computed<TableColumn<Profile>[]>(() => [
     id: "name",
     accessorFn: (row) => row.name || "Người dùng",
     header: "Tên",
-    filterFn: "includesString",
     cell: ({ row }) => row.original.name || "Người dùng",
   },
   {
     id: "role",
     accessorFn: (row) => row.role || "customer",
     header: "Vai trò",
-    filterFn: "equalsString",
     cell: ({ row }) => {
       const role = row.original.role || "customer";
       const color = role === "admin" ? "error" : role === "employee" ? "primary" : "success";
@@ -356,9 +362,6 @@ const columns = computed<TableColumn<Profile>[]>(() => [
             v-model:column-filters="columnFilters"
             v-model:column-visibility="columnVisibility"
             v-model:pagination="pagination"
-            :pagination-options="{
-              getPaginationRowModel: getPaginationRowModel()
-            }"
             :data="users"
             :columns="columns"
             :loading="loading"
@@ -381,15 +384,15 @@ const columns = computed<TableColumn<Profile>[]>(() => [
 
           <div class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto">
             <div class="text-sm text-muted">
-              Hiển thị {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} kết quả.
+              Hiển thị {{ total || 0 }} kết quả.
             </div>
 
-            <div class="flex items-center gap-1.5" v-if="table?.tableApi && table.tableApi.getFilteredRowModel().rows.length > pagination.pageSize">
+            <div class="flex items-center gap-1.5" v-if="total > pagination.pageSize">
               <UPagination
-                :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-                :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-                :total="table?.tableApi?.getFilteredRowModel().rows.length"
-                @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+                :default-page="pagination.pageIndex + 1"
+                :items-per-page="pagination.pageSize"
+                :total="total"
+                @update:page="(p: number) => { pagination.pageIndex = p - 1 }"
               />
             </div>
           </div>
