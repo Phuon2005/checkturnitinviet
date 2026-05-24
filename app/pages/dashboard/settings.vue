@@ -11,7 +11,11 @@ useSeoMeta({
 });
 
 const toast = useToast();
-const { profile, isAdmin } = useUser();
+const { profile } = useProfile();
+
+const user = useSupabaseUser();
+const isAdmin = computed(() => user.value?.app_metadata?.role === "admin");
+
 const { settings, fetchSettings, updateSettings } = useSettings();
 
 const isSavingSystem = ref(false);

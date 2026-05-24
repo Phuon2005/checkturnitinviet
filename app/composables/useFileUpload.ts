@@ -1,6 +1,6 @@
 export const useFileUpload = () => {
   const supabase = useSupabaseClient();
-  const { fetch, profile } = useUser();
+  const { fetch, profile } = useProfile();
   const { fetchSettings } = useSettings();
 
   const uploadFile = async (

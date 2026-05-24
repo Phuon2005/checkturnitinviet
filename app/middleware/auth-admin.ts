@@ -1,12 +1,11 @@
 export default defineNuxtRouteMiddleware((to) => {
   const user = useSupabaseUser();
-  const userStore = useUser();
 
   if (!user.value) {
     return navigateTo("/login");
   }
 
-  if (!userStore.isAdmin) {
+  if (user.value.app_metadata?.role !== "admin") {
     return navigateTo("/dashboard");
   }
 });

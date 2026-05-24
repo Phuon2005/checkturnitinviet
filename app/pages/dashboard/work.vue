@@ -11,7 +11,12 @@ useSeoMeta({
   title: "Work Dashboard",
 });
 
-const { profile, isEmployee, isAdmin } = useUser();
+const { profile } = useProfile();
+
+const user = useSupabaseUser();
+const isAdmin = computed(() => user.value?.app_metadata?.role === "admin");
+const isEmployee = computed(() => user.value?.app_metadata?.role === "employee");
+
 const ordersStore = useOrdersStore();
 const { orders } = storeToRefs(ordersStore);
 const {

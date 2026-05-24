@@ -55,83 +55,23 @@ export default eventHandler(async (event) => {
   const transactionNo = query.vnp_TransactionNo as string;
   const bankCode = query.vnp_BankCode as string;
 
-  // Get payment record
-  const { data: payment, error: paymentError } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("transaction_id", transactionId)
-    .single();
-
-  if (paymentError || !payment) {
-    console.error("Payment not found:", transactionId);
-    return { code: "01", message: "Order not found" };
-  }
-
-  if (!payment.credits_added) {
-    console.error("Payment has no credits_added:", transactionId);
-    return { code: "99", message: "Invalid payment record: missing credits_added" };
-  }
-  if (!payment.user_id) {
-    console.error("Payment has no user_id:", transactionId);
-    return { code: "99", message: "Invalid payment record: missing user_id" };
-  }
-
-  // Check if payment was already processed (idempotency)
-  if (payment.status === "completed") {
-    return { code: "00", message: "Payment already processed" };
-  }
-
   if (responseCode === "00") {
-    // Verify amount matches
-    if (!payment.amount) {
-      return { code: "04", message: "Amount does not match" };
-    }
-    const expectedAmount = payment.amount * 100; // Convert to cents
-    if (amount !== expectedAmount) {
-      console.error("Amount mismatch:", {
-        expected: expectedAmount,
-        received: amount,
-      });
-      return { code: "04", message: "Amount does not match" };
-    }
-
     try {
-      // Update payment status to completed
-      const { error: updatePaymentError } = await supabase
-        .from("payments")
-        .update({
-          status: "completed",
-          transaction_no: transactionNo,
-          bank_code: bankCode,
-        })
-        .eq("id", payment.id);
+      const { error: rpcError } = await supabase.rpc("process_vnpay_success", {
+        p_transaction_id: transactionId,
+        p_transaction_no: transactionNo,
+        p_bank_code: bankCode,
+        p_expected_amount: amount,
+      });
 
-      if (updatePaymentError) {
-        console.error("Error updating payment status:", updatePaymentError);
-        return { code: "99", message: "Error updating payment status" };
+      if (rpcError) {
+        console.error("Error processing payment via RPC:", rpcError);
+        if (rpcError.message.includes('Amount mismatch')) return { code: "04", message: "Amount does not match" };
+        if (rpcError.message.includes('Order not found')) return { code: "01", message: "Order not found" };
+        return { code: "99", message: "Error processing payment" };
       }
 
-      // Add credits to user profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("credits")
-        .eq("id", payment.user_id)
-        .single();
-
-      const currentCredits = profile?.credits ?? 0;
-
-      const newCredits = currentCredits + payment.credits_added;
-
-      const { error: updateCreditsError } = await supabase
-        .from("profiles")
-        .update({ credits: newCredits })
-        .eq("id", payment.user_id);
-
-      if (updateCreditsError) throw updateCreditsError;
-
-      console.log(
-        `Payment successful: User ${payment.user_id} added ${payment.credits_added} credits`,
-      );
+      console.log(`Payment successful for transaction ${transactionId}`);
       return { code: "00", message: "Payment successful" };
     } catch (error: unknown) {
       console.error("Error processing payment:", error);
@@ -144,7 +84,7 @@ export default eventHandler(async (event) => {
       .update({
         status: "failed",
       })
-      .eq("id", payment.id);
+      .eq("transaction_id", transactionId);
 
     if (updateError)
       console.error("Error updating failed payment:", updateError);

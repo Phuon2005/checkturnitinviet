@@ -1,12 +1,11 @@
 import {
   serverSupabaseClient,
-  serverSupabaseServiceRole,
   serverSupabaseUser,
 } from "#supabase/server";
 import { calcVariation, getPreviousRange } from "../utils";
 import { z } from "zod";
 
-export default cachedEventHandler(async (event) => {
+export default eventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
 
   if (!user) {
@@ -18,20 +17,7 @@ export default cachedEventHandler(async (event) => {
 
   const supabase = await serverSupabaseClient(event);
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.sub)
-    .single();
-
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    });
-  }
-
-  if (profile?.role !== "admin") {
+  if (user?.app_metadata?.role !== "admin") {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required",
@@ -138,4 +124,4 @@ export default cachedEventHandler(async (event) => {
       variation: calcVariation(currentProcessed, previousProcessed),
     },
   };
-}, { maxAge: 60 * 30 });
+});

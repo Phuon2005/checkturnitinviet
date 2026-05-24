@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { h, resolveComponent, computed, ref, onMounted, watch } from "vue";
 import type { TableColumn } from "@nuxt/ui";
-import { getFilteredRowModel } from "@tanstack/table-core";
 import { refDebounced } from "@vueuse/core";
 import type { Profile } from "~/types";
 
@@ -14,7 +13,11 @@ useSeoMeta({
   title: "Quản lý người dùng",
 });
 
-const { isAdmin, loading: userLoading } = useUser();
+const { loading: userLoading } = useProfile();
+
+const user = useSupabaseUser();
+const isAdmin = computed(() => user.value?.app_metadata?.role === "admin");
+
 const router = useRouter();
 const toast = useToast();
 const supabase = useSupabaseClient();

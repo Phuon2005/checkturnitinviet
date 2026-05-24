@@ -10,7 +10,7 @@ useSeoMeta({
   title: "Payment Success",
 });
 
-const { profile, fetch } = useUser();
+const { profile, fetch } = useProfile();
 const router = useRouter();
 const toast = useToast();
 const isVerifying = ref(true);

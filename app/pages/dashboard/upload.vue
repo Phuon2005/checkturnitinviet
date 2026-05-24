@@ -10,7 +10,7 @@ useSeoMeta({
   title: "Upload Document",
 });
 
-const { fetch } = useUser();
+const { fetch } = useProfile();
 const { uploadFile } = useCustomFileUpload();
 const toast = useToast();
 

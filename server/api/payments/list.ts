@@ -9,20 +9,7 @@ export default eventHandler(async (event) => {
 
   const supabase = await serverSupabaseClient(event);
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.sub)
-    .single();
-
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    });
-  }
-
-  if (profile?.role !== "admin") return null;
+  if (user?.app_metadata?.role !== "admin") return null;
 
   const query = await getValidatedQuery(
     event,

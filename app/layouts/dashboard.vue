@@ -8,7 +8,12 @@ const logout = async () => {
   await router.push("/");
 };
 
-const { isAdmin, isEmployee, profile } = useUser();
+const { profile } = useProfile();
+
+const user = useSupabaseUser();
+const isAdmin = computed(() => user.value?.app_metadata?.role === "admin");
+const isEmployee = computed(() => user.value?.app_metadata?.role === "employee");
+
 const ordersStore = useOrdersStore();
 const { unassignedCount } = storeToRefs(ordersStore);
 

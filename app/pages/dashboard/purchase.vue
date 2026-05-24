@@ -10,7 +10,7 @@ useSeoMeta({
   title: "Purchase Credits",
 });
 
-const { profile } = useUser();
+const { profile } = useProfile();
 const { initiatePayment, isLoading } = usePayments();
 const { settings, fetchSettings } = useSettings();
 

@@ -5,7 +5,7 @@ import { type Profile, type Order } from "~/types";
 
 export const useOrdersStore = defineStore("orders", () => {
   const supabase = useSupabaseClient();
-  const { profile } = useUser();
+  const { profile } = useProfile();
   const toast = useToast();
   const { playSound } = useNotificationSound();
 

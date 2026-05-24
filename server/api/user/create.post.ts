@@ -25,20 +25,7 @@ export default eventHandler(async (event) => {
 
   const supabaseAdmin = serverSupabaseServiceRole(event);
 
-  const { data: profile, error } = await supabaseAdmin
-    .from("profiles")
-    .select("*")
-    .eq("id", user.sub)
-    .single();
-
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    });
-  }
-
-  if (profile?.role !== "admin") {
+  if (user?.app_metadata?.role !== "admin") {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Only administrators can create new users.",

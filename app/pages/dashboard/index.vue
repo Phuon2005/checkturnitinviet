@@ -10,7 +10,11 @@ useSeoMeta({
   title: "Dashboard",
 });
 
-const { profile, isCustomer } = useUser();
+const { profile } = useProfile();
+
+const user = useSupabaseUser();
+const isCustomer = computed(() => user.value?.app_metadata?.role === "customer");
+
 const ordersStore = useOrdersStore();
 const { orders } = storeToRefs(ordersStore);
 const { settings } = useSettings();
