@@ -110,39 +110,6 @@ const saveUser = async () => {
   }
 };
 
-// Add User Modal
-const addModal = ref(false);
-const addForm = ref({
-  name: "",
-  role: "customer",
-  credits: 0,
-});
-const isAdding = ref(false);
-
-const addUser = async () => {
-  isAdding.value = true;
-  try {
-    const { error } = await supabase.from("profiles").insert({
-      id: crypto.randomUUID(),
-      name: addForm.value.name,
-      role: addForm.value.role,
-      credits: addForm.value.credits,
-    });
-
-    if (error) throw error;
-
-    toast.add({ title: "Thành công", description: "Đã thêm người dùng", color: "primary" });
-    addModal.value = false;
-    addForm.value = { name: "", role: "customer", credits: 0 };
-    await fetchUsers();
-  } catch (error: unknown) {
-    const err = error as Error;
-    toast.add({ title: "Lỗi", description: err.message, color: "error" });
-  } finally {
-    isAdding.value = false;
-  }
-};
-
 // Delete User Modal
 const deleteModal = ref(false);
 const userToDelete = ref<Profile | null>(null);
@@ -287,13 +254,7 @@ const columns = computed<TableColumn<Profile>[]>(() => [
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">Quản lý người dùng</h2>
             <div class="flex items-center gap-2">
-              <UButton
-                color="primary"
-                icon="i-lucide-plus"
-                @click="addModal = true"
-              >
-                Thêm người dùng
-              </UButton>
+              <DashboardUsersAddModal @success="fetchUsers" />
               <UButton
                 color="neutral"
                 icon="i-lucide-refresh-cw"
@@ -422,33 +383,6 @@ const columns = computed<TableColumn<Profile>[]>(() => [
             <div class="flex justify-end gap-2 pt-4">
               <UButton variant="outline" @click="editModal = false">Hủy</UButton>
               <UButton type="submit" color="primary" :loading="isSaving">Lưu thay đổi</UButton>
-            </div>
-          </form>
-        </template>
-      </UModal>
-
-      <UModal v-model:open="addModal">
-        <template #header>
-          <div class="font-semibold">Thêm người dùng</div>
-        </template>
-        <template #body>
-          <form @submit.prevent="addUser" class="space-y-4">
-            <UFormField label="Tên">
-              <UInput v-model="addForm.name" placeholder="Nhập tên người dùng" required />
-            </UFormField>
-            <UFormField label="Vai trò">
-              <USelect v-model="addForm.role" :items="[
-                { label: 'Khách hàng', value: 'customer' },
-                { label: 'Nhân viên', value: 'employee' },
-                { label: 'Admin', value: 'admin' }
-              ]" />
-            </UFormField>
-            <UFormField label="Credits">
-              <UInput v-model="addForm.credits" type="number" min="0" required />
-            </UFormField>
-            <div class="flex justify-end gap-2 pt-4">
-              <UButton variant="outline" @click="addModal = false">Hủy</UButton>
-              <UButton type="submit" color="primary" :loading="isAdding">Thêm</UButton>
             </div>
           </form>
         </template>

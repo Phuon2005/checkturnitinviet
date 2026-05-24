@@ -10,6 +10,7 @@ const schema = z.object({
 });
 
 const open = ref(false);
+const emit = defineEmits(["success"]);
 
 type Schema = z.output<typeof schema>;
 
@@ -46,16 +47,17 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     color: "success",
   });
   open.value = false;
+  emit("success");
 }
 </script>
 
 <template>
   <UModal
     v-model:open="open"
-    title="New customer"
-    description="Add a new customer to the database"
+    title="Thêm người dùng"
+    description="Thêm người dùng mới vào hệ thống"
   >
-    <UButton label="New customer" icon="i-lucide-plus" />
+    <UButton label="Thêm người dùng" color="primary" icon="i-lucide-plus" />
 
     <template #body>
       <UForm
