@@ -172,20 +172,30 @@ const columns = computed<TableColumn<Order>[]>(() => {
           }
 
           if (order.assigned_to === props.profileId) {
-            buttons.push(
-              h(
-                UButton,
-                {
-                  size: "xs",
-                  variant: "outline",
-                  onClick: (e: Event) => {
-                    e.stopPropagation();
-                    emit("download-document", order);
+            if (order.documents.file_path === '[DELETED]') {
+              buttons.push(
+                h(
+                  UBadge,
+                  { color: "neutral", variant: "subtle", size: "sm" },
+                  () => "File đã xóa"
+                )
+              );
+            } else {
+              buttons.push(
+                h(
+                  UButton,
+                  {
+                    size: "xs",
+                    variant: "outline",
+                    onClick: (e: Event) => {
+                      e.stopPropagation();
+                      emit("download-document", order);
+                    },
                   },
-                },
-                () => "Tải xuống",
-              ),
-            );
+                  () => "Tải xuống",
+                ),
+              );
+            }
           }
 
           if (
