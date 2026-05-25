@@ -79,28 +79,27 @@ const handleSaveSystem = async () => {
           </p>
         </template>
 
-        <form @submit.prevent="handleSaveSystem" class="space-y-4">
-          <!-- //TODO REPLACE WITH UFORM -->
-          <UFormField label="Giá 1 Credit (VNĐ)">
+        <UForm :state="systemForm" @submit="handleSaveSystem" class="space-y-4">
+          <UFormField label="Giá 1 Credit (VNĐ)" name="credit_price">
             <UInput v-model="systemForm.credit_price" type="number" min="0" />
           </UFormField>
 
           <div class="grid grid-cols-3 gap-4">
-            <UFormField label="Phí AI">
+            <UFormField label="Phí AI" name="ai_credit_cost">
               <UInput
                 v-model="systemForm.ai_credit_cost"
                 type="number"
                 min="0"
               />
             </UFormField>
-            <UFormField label="Phí Đạo văn">
+            <UFormField label="Phí Đạo văn" name="similarity_credit_cost">
               <UInput
                 v-model="systemForm.similarity_credit_cost"
                 type="number"
                 min="0"
               />
             </UFormField>
-            <UFormField label="Phí Combo">
+            <UFormField label="Phí Combo" name="combo_credit_cost">
               <UInput
                 v-model="systemForm.combo_credit_cost"
                 type="number"
@@ -109,26 +108,28 @@ const handleSaveSystem = async () => {
             </UFormField>
           </div>
 
+          <!-- Temporarily hid announcement settings
           <USeparator class="my-4" />
 
-          <UFormField label="Bật thông báo băng rôn">
+          <UFormField label="Bật thông báo băng rôn" name="announcement_active">
             <USwitch v-model="systemForm.announcement_active" />
           </UFormField>
 
-          <UFormField label="Nội dung thông báo (hỗ trợ văn bản)">
+          <UFormField label="Nội dung thông báo (hỗ trợ văn bản)" name="announcement_text">
             <UTextarea
               v-model="systemForm.announcement_text"
               placeholder="Khuyến mãi đặc biệt hôm nay..."
               :disabled="!systemForm.announcement_active"
             />
           </UFormField>
+          -->
 
           <div class="flex justify-end">
             <UButton type="submit" color="primary" :loading="isSavingSystem"
               >Lưu hệ thống</UButton
             >
           </div>
-        </form>
+        </UForm>
       </UPageCard>
     </template>
   </UDashboardPanel>

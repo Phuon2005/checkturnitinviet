@@ -1,0 +1,1 @@
+GRANT UPDATE ON system_settings TO authenticated;
