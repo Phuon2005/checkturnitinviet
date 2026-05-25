@@ -17,7 +17,7 @@ const isCustomer = computed(() => user.value?.app_metadata?.role === "customer")
 
 const ordersStore = useOrdersStore();
 const { orders } = storeToRefs(ordersStore);
-const { settings } = useSettings();
+const { creditPrice } = useSettings();
 
 // const { data: page } = await useAsyncData('index', () => queryCollection('index').first())
 
@@ -46,7 +46,7 @@ const openPreview = (order: Order) => {
               {{ profile?.credits ?? 0 }}
             </p>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Giá mỗi credits: {{ formatCurrency(settings?.credit_price) }} VND
+              Giá mỗi credits: {{ formatCurrency(creditPrice) }} VND
             </p>
             <div class="mt-4 flex flex-wrap gap-3">
               <UButton to="/dashboard/purchase" color="primary" icon="i-lucide-shopping-cart">Mua thêm</UButton>

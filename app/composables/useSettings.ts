@@ -50,10 +50,19 @@ export const useSettings = () => {
     fetchSettings();
   }
 
+  const aiCreditCost = computed(() => settings.value?.ai_credit_cost || 1);
+  const similarityCreditCost = computed(() => settings.value?.similarity_credit_cost || 1);
+  const comboCreditCost = computed(() => settings.value?.combo_credit_cost || 2);
+  const creditPrice = computed(() => settings.value?.credit_price || 15000);
+
   return {
     settings: readonly(settings),
     loading: readonly(loading),
     fetchSettings,
     updateSettings,
+    aiCreditCost,
+    similarityCreditCost,
+    comboCreditCost,
+    creditPrice,
   };
 };

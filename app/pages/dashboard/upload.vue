@@ -13,6 +13,7 @@ useSeoMeta({
 const { fetch } = useProfile();
 const { uploadFile } = useCustomFileUpload();
 const toast = useToast();
+const { aiCreditCost, similarityCreditCost, comboCreditCost } = useSettings();
 
 const checkType = ref<"ai" | "similarity" | "combo">("combo");
 const uploading = ref(false);
@@ -26,13 +27,14 @@ const failedFiles: {
   reason: string;
 }[] = [];
 
-const note = `
+const note = computed(() => `
 ::tip
-Check đạo văn hoặc check AI tốn 1 credit.
-Check combo (cả AI + đạo văn) tốn 2 credits.
+Check đạo văn tốn ${similarityCreditCost.value} credit.
+Check AI tốn ${aiCreditCost.value} credit.
+Check combo (cả AI + đạo văn) tốn ${comboCreditCost.value} credits.
 Một file tương đương 1 lần check.
 ::
-`;
+`);
 
 const handleSubmit = async () => {
   if (!state.files.length) return;

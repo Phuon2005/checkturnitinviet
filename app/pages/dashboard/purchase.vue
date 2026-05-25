@@ -12,15 +12,13 @@ useSeoMeta({
 
 const { profile } = useProfile();
 const { initiatePayment, isLoading } = usePayments();
-const { settings, fetchSettings } = useSettings();
+const { settings, fetchSettings, creditPrice, aiCreditCost, similarityCreditCost, comboCreditCost } = useSettings();
 
 const customCredits = ref(25);
 
 onMounted(() => {
   fetchSettings();
 });
-
-const creditPrice = computed(() => settings.value?.credit_price || 15000);
 
 const totalPrice = computed(() => customCredits.value * creditPrice.value);
 
@@ -154,17 +152,17 @@ const buyCredits = async (credits: number) => {
               <div class="mt-5 flex flex-wrap gap-2">
                 <UBadge color="error">
                   Check AI:
-                  {{ settings?.ai_credit_cost || 1 }} credits
+                  {{ aiCreditCost }} credits
                 </UBadge>
 
                 <UBadge color="warning">
                   Check đạo văn:
-                  {{ settings?.similarity_credit_cost || 1 }} credits
+                  {{ similarityCreditCost }} credits
                 </UBadge>
 
                 <UBadge color="primary">
                   Combo:
-                  {{ settings?.combo_credit_cost || 2 }} credits
+                  {{ comboCreditCost }} credits
                 </UBadge>
               </div>
             </div>
@@ -259,18 +257,18 @@ const buyCredits = async (credits: number) => {
               <div class="mt-4 text-sm text-muted">
                 Khoảng
                 {{
-                  Math.floor(customCredits / (settings?.ai_credit_cost || 1))
+                  Math.floor(customCredits / aiCreditCost)
                 }}
                 lượt check AI, hoặc
                 {{
                   Math.floor(
-                    customCredits / (settings?.similarity_credit_cost || 1),
+                    customCredits / similarityCreditCost,
                   )
                 }}
                 lượt check đạo văn, hoặc
 
                 {{
-                  Math.floor(customCredits / (settings?.combo_credit_cost || 1))
+                  Math.floor(customCredits / comboCreditCost)
                 }}
                 lượt check combo
               </div>

@@ -19,12 +19,6 @@ export default defineNuxtConfig({
   ],
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
-    public: {
-      similarityCredit: 1,
-      aiCredit: 1,
-      comboCredit: 2,
-      creditPrice: 15000,
-    },
     vnpayTmnCode: "",
     vnpayHashSecret: "",
     vnpayReturnUrl: "",
