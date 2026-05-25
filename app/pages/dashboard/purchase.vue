@@ -185,19 +185,67 @@ const buyCredits = async (credits: number) => {
 
         <!-- PROMO CODE -->
         <div class="max-w-md mx-auto w-full">
-          <UCard>
-            <div class="flex gap-2">
-              <UInput v-model="promoCode" placeholder="Nhập mã khuyến mãi..." class="flex-1" :disabled="isValidatingPromo" @keyup.enter="applyPromoCode" />
-              <UButton :loading="isValidatingPromo" @click="applyPromoCode" color="gray">Áp dụng</UButton>
-            </div>
-            <div v-if="appliedPromo" class="mt-3 text-sm">
-              <span v-if="appliedPromo.valid" class="text-success font-medium">
-                Đã áp dụng mã thành công! 
-                <span v-if="appliedPromo.discountPercentage">Giảm {{ appliedPromo.discountPercentage }}%</span>
-                <span v-if="appliedPromo.discountPercentage && appliedPromo.bonusCredits">, </span>
-                <span v-if="appliedPromo.bonusCredits">Tặng thêm {{ appliedPromo.bonusCredits }} credits</span>
-              </span>
-              <span v-else class="text-error font-medium">{{ appliedPromo.message }}</span>
+          <UCard class="relative overflow-hidden group border-dashed border-2 border-primary/30 hover:border-primary/60 transition-colors duration-500 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+            <div class="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+            
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <UIcon name="i-lucide-ticket" class="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 class="font-semibold text-lg">Mã khuyến mãi</h3>
+                  <p class="text-xs text-muted">Nhập mã để nhận ưu đãi</p>
+                </div>
+              </div>
+
+              <div class="flex gap-2 relative">
+                <UInput 
+                  v-model="promoCode" 
+                  placeholder="Ví dụ: CHECKVN2026..." 
+                  class="flex-1" 
+                  size="lg"
+                  :disabled="isValidatingPromo" 
+                  @keyup.enter="applyPromoCode" 
+                  :ui="{ icon: { trailing: { pointer: '' } } }"
+                >
+                  <template #trailing v-if="appliedPromo?.valid">
+                    <UIcon name="i-lucide-check-circle-2" class="text-success w-5 h-5" />
+                  </template>
+                </UInput>
+                <UButton :loading="isValidatingPromo" @click="applyPromoCode" color="primary" variant="soft" size="lg" class="px-6 font-medium">Áp dụng</UButton>
+              </div>
+
+              <div v-if="appliedPromo" class="mt-4 transition-all duration-300 transform origin-top" :class="appliedPromo ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
+                <UAlert
+                  v-if="appliedPromo.valid"
+                  color="success"
+                  variant="subtle"
+                  icon="i-lucide-party-popper"
+                  title="Áp dụng thành công!"
+                  class="border border-success/20 shadow-sm"
+                >
+                  <template #description>
+                    <div class="flex flex-col gap-1.5 mt-1.5">
+                      <div v-if="appliedPromo.discountPercentage" class="flex items-center gap-1.5 text-sm font-medium text-success-600 dark:text-success-400">
+                        <UIcon name="i-lucide-percent" class="w-4 h-4" />
+                        Giảm {{ appliedPromo.discountPercentage }}% tổng đơn
+                      </div>
+                      <div v-if="appliedPromo.bonusCredits" class="flex items-center gap-1.5 text-sm font-medium text-success-600 dark:text-success-400">
+                        <UIcon name="i-lucide-gift" class="w-4 h-4" />
+                        Tặng thêm {{ appliedPromo.bonusCredits }} credits
+                      </div>
+                    </div>
+                  </template>
+                </UAlert>
+                <UAlert
+                  v-else
+                  color="error"
+                  variant="subtle"
+                  icon="i-lucide-x-circle"
+                  :title="appliedPromo.message || 'Mã không hợp lệ'"
+                />
+              </div>
             </div>
           </UCard>
         </div>

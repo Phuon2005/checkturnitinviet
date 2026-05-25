@@ -16,4 +16,5 @@ alter table public.promo_codes enable row level security;
 create policy "Enable read access for all users" on public.promo_codes
   for select using (true);
 
-GRANT SELECT, INSERT, UPDATE ON promo_codes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON promo_codes TO service_role;
+GRANT SELECT ON promo_codes TO anon;
