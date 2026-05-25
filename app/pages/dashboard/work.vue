@@ -50,9 +50,17 @@ const handleAssignOrder = async (order: Order) => {
 
 const openReportModal = (order: Order) => {
   currentOrder.value = order;
-  aiScore.value = 0;
-  similarityScore.value = 0;
-  notes.value = "";
+  
+  if (order.reports) {
+    aiScore.value = order.reports.ai_score ?? 0;
+    similarityScore.value = order.reports.similarity_score ?? 0;
+    notes.value = (order.reports.details as any)?.notes ?? "";
+  } else {
+    aiScore.value = 0;
+    similarityScore.value = 0;
+    notes.value = "";
+  }
+  
   reportModal.value = true;
 };
 

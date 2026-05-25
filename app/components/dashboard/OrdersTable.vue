@@ -190,20 +190,21 @@ const columns = computed<TableColumn<Order>[]>(() => {
 
           if (
             order.assigned_to === props.profileId &&
-            order.status === "processing"
+            (order.status === "processing" || order.status === "completed")
           ) {
             buttons.push(
               h(
                 UButton,
                 {
                   size: "xs",
-                  color: "primary",
+                  color: order.status === "completed" ? "neutral" : "primary",
+                  variant: order.status === "completed" ? "outline" : "solid",
                   onClick: (e: Event) => {
                     e.stopPropagation();
                     emit("submit-report", order);
                   },
                 },
-                () => "Nộp báo cáo",
+                () => (order.status === "completed" ? "Sửa báo cáo" : "Nộp báo cáo"),
               ),
             );
           }

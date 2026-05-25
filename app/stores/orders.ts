@@ -75,7 +75,7 @@ export const useOrdersStore = defineStore("orders", () => {
   };
 
   const assignOrder = async (orderId: string) => {
-    if (!profile.value || profile.value.role !== "employee") return;
+    if (!profile.value || (profile.value.role !== "employee" && profile.value.role !== "admin")) return;
 
     const { error } = await supabase
       .from("orders")
@@ -111,12 +111,12 @@ export const useOrdersStore = defineStore("orders", () => {
       throw new Error("Order not assigned to you");
     }
 
-    const { error } = await supabase.from("reports").insert({
+    const { error } = await supabase.from("reports").upsert({
       order_id: orderId,
       ai_score: aiScore,
       similarity_score: similarityScore,
       details: notes ? { notes } : null,
-    });
+    }, { onConflict: 'order_id' });
 
     if (error) throw error;
 
