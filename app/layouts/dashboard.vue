@@ -129,33 +129,14 @@ const groups = computed(() => [
     ],
   },
 ]);
-const { data: promoData } = useAsyncData('active-promo', () => $fetch('/api/promo/active'));
-const dismissedPromos = useCookie<string[]>('dismissed_promos', { default: () => [] });
 
-const activePromo = computed(() => {
-  if (!promoData.value) return null;
-  if (dismissedPromos.value.includes(promoData.value.code)) return null;
-  return promoData.value;
-});
-
-const closePromoBanner = () => {
-  if (promoData.value) {
-    dismissedPromos.value.push(promoData.value.code);
-  }
-};
 </script>
 
 <template>
-  <AppAnnouncement />
-  <UBanner
-    v-if="activePromo"
-    icon="i-lucide-tag"
-    :title="activePromo.banner_message"
-    :actions="[{ label: 'Dùng mã ngay', to: '/dashboard/purchase', color: 'primary' }]"
-    @close="closePromoBanner"
-  />
-  <UDashboardGroup unit="rem">
-    <UDashboardSidebar
+  <div class="flex flex-col h-[100dvh] overflow-hidden w-full">
+    <AppPromoBanner class="shrink-0 z-50" />
+    <UDashboardGroup unit="rem" class="!flex-1 !h-full !relative !inset-auto overflow-hidden">
+      <UDashboardSidebar
       id="dashboard"
       class="bg-elevated/25"
       :ui="{ footer: 'lg:border-t lg:border-default' }"
@@ -186,7 +167,8 @@ const closePromoBanner = () => {
       </template>
     </UDashboardSidebar>
 
-    <UDashboardSearch :groups="groups" />
-    <slot />
-  </UDashboardGroup>
+      <UDashboardSearch :groups="groups" />
+      <slot />
+    </UDashboardGroup>
+  </div>
 </template>
