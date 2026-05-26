@@ -33,6 +33,7 @@ export default defineNuxtConfig({
         "date-fns",
         "@internationalized/date",
         "@unovis/vue",
+        "@unovis/ts",
       ],
     },
   },
