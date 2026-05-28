@@ -17,6 +17,15 @@ export default defineNuxtConfig({
     "@nuxtjs/supabase",
     "@pinia/nuxt",
   ],
+  icon: {
+    clientBundle: {
+      scan: true,
+      includeCustomCollections: true,
+    },
+    serverBundle: {
+      collections: ['lucide', 'simple-icons']
+    }
+  },
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
     vnpayTmnCode: "",
