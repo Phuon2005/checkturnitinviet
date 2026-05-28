@@ -40,4 +40,9 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false,
   },
+  routeRules: {
+    '/': { prerender: true },
+    '/login': { prerender: true },
+    '/signup': { prerender: true }
+  }
 });
