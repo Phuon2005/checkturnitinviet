@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { h, resolveComponent, computed, onMounted, useTemplateRef } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { formatBytes, formatDateTime } from "~/utils/formatters";
 import type { Order } from "~/types";
@@ -20,9 +19,6 @@ const emit = defineEmits<{
   (e: "submit-report", order: Order): void;
   (e: "view", order: Order): void;
 }>();
-
-const UBadge = resolveComponent("UBadge");
-const UButton = resolveComponent("UButton");
 
 const ordersStore = useOrdersStore();
 const { filters, pagination, totalOrders } = storeToRefs(ordersStore);
@@ -47,34 +43,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
       id: "check_type",
       accessorFn: (row) => row.check_type,
       header: "Loại",
-      cell: ({ row }) => {
-        const type = row.original.check_type as "ai" | "similarity" | "combo" | null;
-
-        if (!type) return "-";
-
-        const labels = {
-          ai: "AI",
-          similarity: "Đạo văn",
-          combo: "Combo",
-        };
-
-        const colors = {
-          ai: "primary",
-          similarity: "warning",
-          combo: "success",
-        } as const;
-
-        return h(
-          UBadge,
-          {
-            color: colors[type],
-            variant: "subtle",
-          },
-          () => labels[type],
-        );
-      },
     },
-
   ];
 
   if (userRole.value !== "customer") {
@@ -89,152 +58,37 @@ const columns = computed<TableColumn<Order>[]>(() => {
     {
       id: "ai",
       header: "AI",
-      cell: ({ row }) => `${row.original.reports?.ai_score ?? "-"}%`,
     },
     {
       id: "similarity",
       header: "Đạo văn",
-      cell: ({ row }) => `${row.original.reports?.similarity_score ?? "-"}%`,
     },
     {
       id: "notes",
       header: "Ghi chú",
-      cell: ({ row }) =>
-        (row.original.reports?.details as any)?.notes ?? "-"
     },
     {
       id: "date",
       accessorFn: (row) => row.created_at || row.documents.uploaded_at,
       header: "Thời gian tạo",
-      cell: ({ row }) =>
-        formatDateTime(
-          row.original.created_at || row.original.documents.uploaded_at,
-        ),
     },
     {
       id: "date-updated",
       accessorFn: (row) => row.updated_at || row.documents.uploaded_at,
       header: "Thời gian cập nhật",
-      cell: ({ row }) =>
-        formatDateTime(
-          row.original.updated_at || row.original.documents.uploaded_at,
-        ),
     },
-
     {
       id: "status",
       accessorFn: (row) => row.status || "pending",
       header: "Trạng thái",
-      cell: ({ row }) => {
-        const status = row.original.status || "pending";
-
-        const color = {
-          completed: "success",
-          processing: "primary",
-          pending: "warning",
-          failed: "error",
-        }[status] as "success" | "primary" | "warning" | "error";
-
-        return h(
-          UBadge,
-          {
-            color,
-            variant: "subtle",
-          },
-          () => ({ completed: "Hoàn tất", processing: "Đang xử lý", pending: "Chờ xử lý", failed: "Lỗi" }[status]),
-        );
-      },
     },
     {
       id: "size",
       header: "Kích cỡ",
-      cell: ({ row }) => formatBytes(row.original.documents.file_size),
     },
     {
       id: "actions",
       header: "",
-
-      cell: ({ row }) => {
-        const order = row.original;
-
-        const buttons = [];
-
-        if (userRole.value !== "customer") {
-          if (!order.assigned_to) {
-            buttons.push(
-              h(
-                UButton,
-                {
-                  size: "xs",
-                  color: "primary",
-                  variant: "outline",
-                  onClick: (e: Event) => {
-                    e.stopPropagation();
-                    emit("assign", order);
-                  },
-                },
-                () => "Nhận đơn",
-              ),
-            );
-          }
-
-          if (order.assigned_to === profileId.value) {
-            if (order.documents.file_path === '[DELETED]') {
-              buttons.push(
-                h(
-                  UBadge,
-                  { color: "neutral", variant: "subtle", size: "sm" },
-                  () => "File đã xóa"
-                )
-              );
-            } else {
-              buttons.push(
-                h(
-                  UButton,
-                  {
-                    size: "xs",
-                    variant: "outline",
-                    onClick: (e: Event) => {
-                      e.stopPropagation();
-                      emit("download-document", order);
-                    },
-                  },
-                  () => "Tải xuống",
-                ),
-              );
-            }
-          }
-
-          if (
-            order.assigned_to === profileId.value &&
-            (order.status === "processing" || order.status === "completed")
-          ) {
-            buttons.push(
-              h(
-                UButton,
-                {
-                  size: "xs",
-                  color: order.status === "completed" ? "neutral" : "primary",
-                  variant: order.status === "completed" ? "outline" : "solid",
-                  onClick: (e: Event) => {
-                    e.stopPropagation();
-                    emit("submit-report", order);
-                  },
-                },
-                () => (order.status === "completed" ? "Sửa báo cáo" : "Nộp báo cáo"),
-              ),
-            );
-          }
-        }
-
-        return h(
-          "div",
-          {
-            class: "flex gap-2",
-          },
-          buttons,
-        );
-      },
     },
   );
 
@@ -324,6 +178,91 @@ const columns = computed<TableColumn<Order>[]>(() => {
       }"
       @select="(event, row) => emit('view', row.original)"
     >
+      <template #check_type-cell="{ row }">
+        <UBadge
+          v-if="row.original.check_type"
+          :color="{ ai: 'primary', similarity: 'warning', combo: 'success' }[row.original.check_type as string] as any || 'neutral'"
+          variant="subtle"
+        >
+          {{ { ai: 'AI', similarity: 'Đạo văn', combo: 'Combo' }[row.original.check_type as string] }}
+        </UBadge>
+        <span v-else>-</span>
+      </template>
+
+      <template #ai-cell="{ row }">
+        {{ row.original.reports?.ai_score ?? "-" }}%
+      </template>
+
+      <template #similarity-cell="{ row }">
+        {{ row.original.reports?.similarity_score ?? "-" }}%
+      </template>
+
+      <template #notes-cell="{ row }">
+        {{ (row.original.reports?.details as any)?.notes ?? "-" }}
+      </template>
+
+      <template #date-cell="{ row }">
+        {{ formatDateTime(row.original.created_at || row.original.documents.uploaded_at) }}
+      </template>
+
+      <template #date-updated-cell="{ row }">
+        {{ formatDateTime(row.original.updated_at || row.original.documents.uploaded_at) }}
+      </template>
+
+      <template #status-cell="{ row }">
+        <UBadge
+          :color="{ completed: 'success', processing: 'primary', pending: 'warning', failed: 'error' }[row.original.status || 'pending'] as any"
+          variant="subtle"
+        >
+          {{ { completed: 'Hoàn tất', processing: 'Đang xử lý', pending: 'Chờ xử lý', failed: 'Lỗi' }[row.original.status || 'pending'] }}
+        </UBadge>
+      </template>
+
+      <template #size-cell="{ row }">
+        {{ formatBytes(row.original.documents.file_size) }}
+      </template>
+
+      <template #actions-cell="{ row }">
+        <div class="flex gap-2">
+          <UButton
+            v-if="userRole !== 'customer' && !row.original.assigned_to"
+            size="xs"
+            color="primary"
+            variant="outline"
+            @click.stop="emit('assign', row.original)"
+          >
+            Nhận đơn
+          </UButton>
+          <template v-if="userRole !== 'customer' && row.original.assigned_to === profileId">
+            <UBadge
+              v-if="row.original.documents.file_path === '[DELETED]'"
+              color="neutral"
+              variant="subtle"
+              size="sm"
+            >
+              File đã xóa
+            </UBadge>
+            <UButton
+              v-else
+              size="xs"
+              variant="outline"
+              @click.stop="emit('download-document', row.original)"
+            >
+              Tải xuống
+            </UButton>
+            <UButton
+              v-if="row.original.status === 'processing' || row.original.status === 'completed'"
+              size="xs"
+              :color="row.original.status === 'completed' ? 'neutral' : 'primary'"
+              :variant="row.original.status === 'completed' ? 'outline' : 'solid'"
+              @click.stop="emit('submit-report', row.original)"
+            >
+              {{ row.original.status === 'completed' ? 'Sửa báo cáo' : 'Nộp báo cáo' }}
+            </UButton>
+          </template>
+        </div>
+      </template>
+
       <template #empty>
         <div class="py-8 text-center text-muted">
           <slot name="empty-state"> Không có dữ liệu. </slot>

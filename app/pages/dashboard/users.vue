@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { h, resolveComponent, computed, ref, onMounted, watch } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { refDebounced } from "@vueuse/core";
 import type { Profile } from "~/types";
@@ -141,9 +140,6 @@ const deleteUser = async () => {
 };
 
 // Table configuration
-const UBadge = resolveComponent("UBadge");
-const UButton = resolveComponent("UButton");
-const UDropdownMenu = resolveComponent("UDropdownMenu");
 
 const table = useTemplateRef("table");
 
@@ -200,50 +196,25 @@ const columns = computed<TableColumn<Profile>[]>(() => [
     id: "name",
     accessorFn: (row) => row.name || "Người dùng",
     header: "Tên",
-    cell: ({ row }) => row.original.name || "Người dùng",
   },
   {
     id: "role",
     accessorFn: (row) => row.role || "customer",
     header: "Vai trò",
-    cell: ({ row }) => {
-      const role = row.original.role || "customer";
-      const color = role === "admin" ? "error" : role === "employee" ? "primary" : "success";
-      return h(UBadge, { color, variant: "subtle" }, () => role);
-    }
   },
   {
     id: "credits",
     accessorFn: (row) => row.credits || 0,
     header: "Credits",
-    cell: ({ row }) => h("span", { class: "font-semibold" }, row.original.credits || 0),
   },
   {
     id: "created_at",
     accessorFn: (row) => row.created_at,
     header: "Ngày tham gia",
-    cell: ({ row }) => new Date(row.original.created_at || "").toLocaleDateString("vi-VN"),
   },
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => {
-      return h("div", { class: "text-right" }, [
-        h(
-          UDropdownMenu,
-          {
-            content: { align: "end" },
-            items: getRowItems(row)
-          },
-          () => h(UButton, {
-            icon: "i-lucide-ellipsis-vertical",
-            color: "neutral",
-            variant: "ghost",
-            class: "ml-auto"
-          })
-        )
-      ]);
-    }
   }
 ]);
 
@@ -338,6 +309,27 @@ const columns = computed<TableColumn<Profile>[]>(() => [
               td: 'border-b border-default px-4',
             }"
           >
+            <template #name-cell="{ row }">
+              {{ row.original.name || "Người dùng" }}
+            </template>
+            <template #role-cell="{ row }">
+              <UBadge :color="(row.original.role || 'customer') === 'admin' ? 'error' : (row.original.role || 'customer') === 'employee' ? 'primary' : 'success'" variant="subtle">
+                {{ row.original.role || "customer" }}
+              </UBadge>
+            </template>
+            <template #credits-cell="{ row }">
+              <span class="font-semibold">{{ row.original.credits || 0 }}</span>
+            </template>
+            <template #created_at-cell="{ row }">
+              {{ new Date(row.original.created_at || "").toLocaleDateString("vi-VN") }}
+            </template>
+            <template #actions-cell="{ row }">
+              <div class="text-right">
+                <UDropdownMenu :content="{ align: 'end' }" :items="getRowItems(row)">
+                  <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" class="ml-auto" />
+                </UDropdownMenu>
+              </div>
+            </template>
             <template #empty>
               <div class="py-8 text-center text-muted">
                 Không tìm thấy người dùng.

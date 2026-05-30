@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-
 definePageMeta({
   middleware: "auth-admin",
   layout: "dashboard",

@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { ref, watch } from "vue";
 import { refDebounced } from "@vueuse/core";
 import { type Profile, type Order } from "~/types";
 
@@ -363,7 +362,7 @@ export const useOrdersStore = defineStore("orders", () => {
   };
 
   const unassignedCount = computed<number>(() =>
-    orders.value.filter((o) => !o.assigned_to && o.status !== "completed").length,
+    (orders.value as any[]).filter((o) => !o.assigned_to && o.status !== "completed").length,
   );
 
   return {

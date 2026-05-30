@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { h } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import type { Period, Range, Sale } from "~/types";
 
@@ -33,15 +32,6 @@ const columns: TableColumn<Sale>[] = [
   {
     accessorKey: "date",
     header: "Thời gian",
-    cell: ({ row }) => {
-      return new Date(row.getValue("date")).toLocaleString("vi-VN", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-    },
   },
   {
     accessorKey: "name",
@@ -49,17 +39,7 @@ const columns: TableColumn<Sale>[] = [
   },
   {
     accessorKey: "amount",
-    header: () => h("div", { class: "text-right" }, "Số tiền"),
-    cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("amount"));
-
-      const formatted = new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(amount);
-
-      return h("div", { class: "text-right font-medium" }, formatted);
-    },
+    header: "Số tiền",
   },
 ];
 </script>
@@ -76,5 +56,25 @@ const columns: TableColumn<Sale>[] = [
       th: 'first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
       td: 'border-b border-default',
     }"
-  />
+  >
+    <template #date-cell="{ row }">
+      {{
+        new Date(row.getValue("date")).toLocaleString("vi-VN", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      }}
+    </template>
+    <template #amount-header>
+      <div class="text-right w-full">Số tiền</div>
+    </template>
+    <template #amount-cell="{ row }">
+      <div class="text-right font-medium">
+        {{ new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number.parseFloat(row.getValue("amount"))) }}
+      </div>
+    </template>
+  </UTable>
 </template>

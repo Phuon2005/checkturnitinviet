@@ -202,7 +202,6 @@ const buyCredits = async (credits: number) => {
                   size="lg"
                   :disabled="isValidatingPromo" 
                   @keyup.enter="applyPromoCode" 
-                  :ui="{ icon: { trailing: { pointer: '' } } }"
                 >
                   <template #trailing v-if="appliedPromo?.valid">
                     <UIcon name="i-lucide-check-circle-2" class="text-success w-5 h-5" />

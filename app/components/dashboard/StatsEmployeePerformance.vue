@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import { h } from "vue";
 
 const props = defineProps<{
   data: { id: string; name: string; count: number; avgTime: number }[];
 }>();
-
-
 
 const columns: TableColumn<any>[] = [
   {
@@ -15,13 +12,11 @@ const columns: TableColumn<any>[] = [
   },
   {
     accessorKey: "count",
-    header: () => h("div", { class: "text-right" }, "Đơn đã xử lý"),
-    cell: ({ row }) => h("div", { class: "text-right font-medium" }, row.getValue("count")),
+    header: "Đơn đã xử lý",
   },
   {
     accessorKey: "avgTime",
-    header: () => h("div", { class: "text-right" }, "Thời gian TB"),
-    cell: ({ row }) => h("div", { class: "text-right font-medium" }, formatTime(row.getValue("avgTime"))),
+    header: "Thời gian TB",
   },
 ];
 </script>
@@ -43,6 +38,18 @@ const columns: TableColumn<any>[] = [
         td: 'border-b border-default',
       }"
     >
+      <template #count-header>
+        <div class="text-right w-full">Đơn đã xử lý</div>
+      </template>
+      <template #count-cell="{ row }">
+        <div class="text-right font-medium">{{ row.getValue("count") }}</div>
+      </template>
+      <template #avgTime-header>
+        <div class="text-right w-full">Thời gian TB</div>
+      </template>
+      <template #avgTime-cell="{ row }">
+        <div class="text-right font-medium">{{ formatTime(row.getValue("avgTime")) }}</div>
+      </template>
       <template #empty>
         <div class="py-8 text-center text-muted">Không có dữ liệu nhân viên</div>
       </template>

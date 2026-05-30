@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { h, resolveComponent, computed, ref, onMounted } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 
 definePageMeta({
@@ -41,7 +40,7 @@ const form = ref({
   active: true,
   show_banner: false,
   banner_message: "",
-  expires_at: null as string | null,
+  expires_at: undefined as string | undefined,
 });
 
 const openCreateModal = () => {
@@ -52,7 +51,7 @@ const openCreateModal = () => {
     active: true,
     show_banner: false,
     banner_message: "",
-    expires_at: null,
+    expires_at: undefined,
   };
   createModal.value = true;
 };
@@ -117,54 +116,27 @@ const deletePromo = async () => {
   }
 };
 
-const UBadge = resolveComponent("UBadge");
-const UButton = resolveComponent("UButton");
-const USwitch = resolveComponent("USwitch");
-
 const columns = computed<TableColumn<any>[]>(() => [
   {
     id: "code",
     accessorKey: "code",
     header: "Mã Code",
-    cell: ({ row }) => h("span", { class: "font-bold text-primary" }, row.original.code),
   },
   {
     id: "benefits",
     header: "Ưu đãi",
-    cell: ({ row }) => {
-      const parts = [];
-      if (row.original.discount_percentage) parts.push(`Giảm ${row.original.discount_percentage}%`);
-      if (row.original.bonus_credits) parts.push(`+${row.original.bonus_credits} credits`);
-      return parts.join(", ") || "-";
-    }
   },
   {
     id: "active",
     header: "Hoạt động",
-    cell: ({ row }) => h(USwitch, {
-      modelValue: row.original.active,
-      "onUpdate:modelValue": (val: boolean) => toggleField(row.original.id, "active", val)
-    })
   },
   {
     id: "show_banner",
     header: "Hiển thị Banner",
-    cell: ({ row }) => h(USwitch, {
-      modelValue: row.original.show_banner,
-      "onUpdate:modelValue": (val: boolean) => toggleField(row.original.id, "show_banner", val)
-    })
   },
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => h("div", { class: "text-right" }, [
-      h(UButton, {
-        icon: "i-lucide-trash",
-        color: "error",
-        variant: "ghost",
-        onClick: () => openDeleteModal(row.original)
-      })
-    ])
   }
 ]);
 </script>
@@ -206,6 +178,23 @@ const columns = computed<TableColumn<any>[]>(() => [
             td: 'border-b border-default px-4',
           }"
         >
+          <template #code-cell="{ row }">
+            <span class="font-bold text-primary">{{ row.original.code }}</span>
+          </template>
+          <template #benefits-cell="{ row }">
+            {{ [row.original.discount_percentage ? `Giảm ${row.original.discount_percentage}%` : '', row.original.bonus_credits ? `+${row.original.bonus_credits} credits` : ''].filter(Boolean).join(", ") || "-" }}
+          </template>
+          <template #active-cell="{ row }">
+            <USwitch :model-value="row.original.active" @update:model-value="val => toggleField(row.original.id, 'active', val)" />
+          </template>
+          <template #show_banner-cell="{ row }">
+            <USwitch :model-value="row.original.show_banner" @update:model-value="val => toggleField(row.original.id, 'show_banner', val)" />
+          </template>
+          <template #actions-cell="{ row }">
+            <div class="text-right">
+              <UButton icon="i-lucide-trash" color="error" variant="ghost" @click="openDeleteModal(row.original)" />
+            </div>
+          </template>
           <template #empty>
             <div class="py-8 text-center text-muted">
               Không có mã khuyến mãi nào.

@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import { h } from "vue";
 
 const props = defineProps<{
   data: { user_id: string; name: string; totalAmount: number }[];
 }>();
-
-
 
 const columns: TableColumn<any>[] = [
   {
@@ -15,11 +12,7 @@ const columns: TableColumn<any>[] = [
   },
   {
     accessorKey: "totalAmount",
-    header: () => h("div", { class: "text-right" }, "Tổng chi tiêu"),
-    cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("totalAmount"));
-      return h("div", { class: "text-right font-medium text-highlighted" }, formatCurrencyVND(amount));
-    },
+    header: "Tổng chi tiêu",
   },
 ];
 </script>
@@ -41,6 +34,12 @@ const columns: TableColumn<any>[] = [
         td: 'border-b border-default',
       }"
     >
+      <template #totalAmount-header>
+        <div class="text-right w-full">Tổng chi tiêu</div>
+      </template>
+      <template #totalAmount-cell="{ row }">
+        <div class="text-right font-medium text-highlighted">{{ formatCurrencyVND(Number.parseFloat(row.getValue("totalAmount"))) }}</div>
+      </template>
       <template #empty>
         <div class="py-8 text-center text-muted">Không có dữ liệu khách hàng</div>
       </template>
