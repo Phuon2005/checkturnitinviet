@@ -92,7 +92,7 @@ const componentMap = {
       :description="page.comparison.description"
     >
       <UPageGrid>
-        <UPageCard
+        <UPageCard spotlight
           v-for="feature in page.comparison.features"
           :key="feature.title"
           variant="subtle"
