@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ContactModal } from '#components';
+import { ContactModal, ReportOutput } from '#components';
 import type { Order } from '~/types';
 
 definePageMeta({
@@ -13,29 +13,31 @@ useSeoMeta({
 
 const { profile } = useProfile();
 
-const user = useSupabaseUser();
-const isCustomer = computed(() => user.value?.app_metadata?.role === "customer");
-
 const ordersStore = useOrdersStore();
 const { orders } = storeToRefs(ordersStore);
 const { creditPrice } = useSettings();
-
-// const { data: page } = await useAsyncData('index', () => queryCollection('index').first())
 
 const supportContacts = [
   { name: "Phương", region: "Vietnam", method: "Zalo", href: "https://zalo.me/0986408788" },
 ];
 
-const previewModal = ref(false)
-const selectedOrder = ref<Order | null>(null)
+const overlay = useOverlay()
+
+const reportModal = overlay.create(ReportOutput)
 
 const openPreview = (order: Order) => {
-  selectedOrder.value = order
-  previewModal.value = true
-  // TODO: modal should be more polished, looks ugly rn
+  // TODO fix type error
+  const instance = reportModal.open({
+    aiScore: order.reports?.ai_score ?? 0,
+    similarityScore: order.reports?.similarity_score ?? 0,
+    fileData: {
+      fileName: order.documents.original_filename,
+      fileSize: order.documents.file_size ?? 0,
+    },
+    footerText: order.reports?.details?.notes,
+    reportDetails: order.reports?.details
+  })
 }
-
-const overlay = useOverlay()
 
 const contactModal = overlay.create(ContactModal)
 </script>
@@ -80,7 +82,6 @@ const contactModal = overlay.create(ContactModal)
         </UPageCard>
       </div>
       <div>
-        <!-- <template #header> -->
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-xl font-semibold text-slate-900 dark:text-white"></h2>
@@ -90,31 +91,8 @@ const contactModal = overlay.create(ContactModal)
           </div>
           <UButton to="/dashboard/upload" variant="outline" icon="i-lucide-file-up">Tải lên tài liệu mới</UButton>
         </div>
-        <!-- </template> -->
-
-        <DashboardOrdersTable :orders="orders.filter(o => o.user_id === profile?.id)" user-role="customer"
-          :profile-id="profile?.id" @view="openPreview">
-        </DashboardOrdersTable>
+        <DashboardOrdersTable :orders="orders.filter(o => o.user_id === profile?.id)" @view="openPreview" />
       </div>
-      <UModal v-model:open="previewModal" :ui="{ content: 'max-w-2xl' }">
-        <template #header>
-          <div class="font-semibold">
-            Chi tiết báo cáo
-          </div>
-        </template>
-
-        <template #body>
-          <ReportOutput v-if="selectedOrder" :ai-score="selectedOrder.reports?.ai_score ?? 0
-            " :similarity-score="selectedOrder.reports?.similarity_score ?? 0
-              " :file-data="{
-                fileName:
-                  selectedOrder.documents.original_filename,
-                fileSize:
-                  selectedOrder.documents.file_size ?? 0,
-              }" :footer-text="selectedOrder.reports?.details?.notes
-                " />
-        </template>
-      </UModal>
     </template>
   </UDashboardPanel>
 </template>

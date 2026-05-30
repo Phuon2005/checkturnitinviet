@@ -87,6 +87,7 @@ export type Database = {
           created_at: string | null
           document_id: string | null
           id: string
+          options: Json | null
           status: string | null
           updated_at: string | null
           user_id: string | null
@@ -97,6 +98,7 @@ export type Database = {
           created_at?: string | null
           document_id?: string | null
           id?: string
+          options?: Json | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -107,6 +109,7 @@ export type Database = {
           created_at?: string | null
           document_id?: string | null
           id?: string
+          options?: Json | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -330,16 +333,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_order_securely: {
-        Args: {
-          p_check_type: string
-          p_file_name: string
-          p_file_path: string
-          p_file_size: number
-          p_mime_type: string
-        }
-        Returns: Json
-      }
+      create_order_securely:
+        | {
+            Args: {
+              p_check_type: string
+              p_file_name: string
+              p_file_path: string
+              p_file_size: number
+              p_mime_type: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_check_type: string
+              p_file_name: string
+              p_file_path: string
+              p_file_size: number
+              p_mime_type: string
+              p_options?: Json
+            }
+            Returns: Json
+          }
       get_revenue_by_period: {
         Args: { end_date: string; p_period: string; start_date: string }
         Returns: {

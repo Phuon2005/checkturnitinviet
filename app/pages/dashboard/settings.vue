@@ -85,13 +85,13 @@ const handleSaveSystem = async () => {
           </UFormField>
 
           <div class="grid grid-cols-3 gap-4">
-            <UFormField label="Phí AI" name="ai_credit_cost">
+            <!-- <UFormField label="Phí AI" name="ai_credit_cost">
               <UInput
                 v-model="systemForm.ai_credit_cost"
                 type="number"
                 min="0"
               />
-            </UFormField>
+            </UFormField> -->
             <UFormField label="Phí Đạo văn" name="similarity_credit_cost">
               <UInput
                 v-model="systemForm.similarity_credit_cost"

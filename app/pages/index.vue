@@ -73,19 +73,6 @@ const componentMap = {
       <component :is="componentMap[section.component]" />
     </UPageSection>
 
-    <!-- <USeparator class="mx-auto w-48" />
-    <UPageSection
-      :title="page.report_preview.title"
-      :description="page.report_preview.description"
-    >
-      <ReportOutput
-        :ai-score="page.report_preview.ai_score"
-        :similarity-score="page.report_preview.similarity_score"
-        :file-data="reportFileData"
-        :footer-text="page.report_preview.footnote"
-      />
-    </UPageSection> -->
-
     <USeparator class="mx-auto w-48" />
     <UPageSection
       :title="page.comparison.title"

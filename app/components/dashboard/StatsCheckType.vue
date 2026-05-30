@@ -11,7 +11,6 @@ const props = defineProps<{
 }>();
 
 const chartData = computed(() => [
-  { name: "AI", value: props.data.ai, color: "var(--ui-primary)" },
   { name: "Đạo văn", value: props.data.similarity, color: "var(--ui-warning)" },
   { name: "Combo", value: props.data.combo, color: "var(--ui-success)" },
 ]);

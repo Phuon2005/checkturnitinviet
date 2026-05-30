@@ -6,6 +6,7 @@ export const useFileUpload = () => {
   const uploadFile = async (
     file: File,
     checkType: "ai" | "similarity" | "combo" = "combo",
+    options?: any
   ) => {
     if (!profile.value) {
       throw new Error("User not authenticated");
@@ -60,21 +61,18 @@ export const useFileUpload = () => {
 
       if (uploadError) throw new Error(uploadError.message);
 
-      // create document and order securely in one transaction
-      const { data: order, error: rpcError } = await supabase.rpc(
-        "create_order_securely",
-        {
-          p_file_name: file.name,
-          p_file_path: filePath,
-          p_file_size: file.size,
-          p_mime_type: file.type,
-          p_check_type: checkType,
+      // create document and order securely in one transaction via server API
+      const order = await $fetch('/api/order/create', {
+        method: 'POST',
+        body: {
+          fileName: file.name,
+          filePath,
+          fileSize: file.size,
+          mimeType: file.type,
+          checkType,
+          options: options || undefined
         }
-      );
-
-      if (rpcError) {
-        throw new Error(rpcError.message);
-      }
+      });
 
       return order;
     } catch (error) {

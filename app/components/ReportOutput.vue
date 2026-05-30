@@ -6,90 +6,121 @@ const props = defineProps<{
   similarityScore: number;
   fileData?: ReportFileData;
   footerText?: string;
+  reportDetails?: Record<string, any>;
 }>();
 
-const formatBytes = (value: number) => {
-  if (value === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  const index = Math.floor(Math.log(value) / Math.log(1024));
-  const size = value / Math.pow(1024, index);
-  return `${size.toFixed(size < 10 && index > 0 ? 1 : 0)} ${units[index]}`;
+const emit = defineEmits<{ close: [boolean] }>()
+
+const ordersStore = useOrdersStore();
+const { downloadDocument, getPreviewUrl } = ordersStore;
+
+const previewUrlAi = ref('');
+const previewUrlSimilarity = ref('');
+
+const loadingAi = ref(false);
+const loadingSimilarity = ref(false);
+
+onMounted(async () => {
+  if (props.reportDetails?.aiReportPath) {
+    try {
+      previewUrlAi.value = await getPreviewUrl(props.reportDetails.aiReportPath);
+    } catch (e: any) {
+      console.error(e);
+    }
+  }
+  if (props.reportDetails?.similarityReportPath) {
+    try {
+      previewUrlSimilarity.value = await getPreviewUrl(props.reportDetails.similarityReportPath);
+    } catch (e: any) {
+      console.error(e);
+    }
+  }
+});
+
+const downloadReport = async (path: string, type: 'ai' | 'similarity') => {
+  const fileName = `bao_cao_${type}_${Date.now()}.pdf`;
+  if (type === 'ai') {
+    loadingAi.value = true;
+  } else {
+    loadingSimilarity.value = true;
+  }
+  try {
+    await downloadDocument(path, fileName);
+  } catch (e: any) {
+    const toast = useToast();
+    toast.add({ title: 'Lỗi tải xuống', description: e.message, color: 'error' });
+  } finally {
+    loadingAi.value = false;
+    loadingSimilarity.value = false;
+  }
 };
 
-const formattedFileSize = computed(() => {
-  return props.fileData?.fileSize ? formatBytes(props.fileData.fileSize) : "-";
-});
+const note = computed(() => `
+::tip
+Note từ nhân viên: ${props.footerText}
+::
+`)
 </script>
 
 <template>
-  <!-- TODO USE UPageCard spotlight -->
-  <UCard
-    spotlight
-    class="max-w-md mx-auto overflow-hidden rounded-[28px] border border-secondary/10 bg-white/90 shadow-sm dark:border-neutral-800 dark:bg-neutral-950/80"
-  >
-    <template #title>
-      <div class="mt-3 space-y-2">
-        <p
-          class="truncate text-base font-semibold text-neutral-900 dark:text-neutral-100"
-        >
-          {{ props.fileData?.fileName ?? "Không có tệp mẫu" }}
-        </p>
+  <UModal :close="{ onClick: () => emit('close', false) }" :title="props.fileData?.fileName ?? `Không tên`" :ui="{ content: 'sm:max-w-6xl w-full' }" scrollable>
+    <template #body>
+      <MDC v-if="props.footerText" :value="note" />
+      <div class="grid gap-4 sm:grid-cols-2">
         <div
-          class="grid grid-cols-3 gap-2 text-sm text-neutral-600 dark:text-neutral-400"
-        >
-          <div
-            class="rounded-2xl bg-white/80 p-2 shadow-sm dark:bg-neutral-950/80 flex items-center justify-center"
-          >
-            <div class="font-semibold">{{ formattedFileSize }}</div>
+          class="rounded-3xl border border-primary/5 bg-gradient-to-br from-primary-50/50 to-white p-5 shadow-sm dark:from-primary-950/20 dark:to-neutral-900/50 dark:border-primary/10">
+          <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+            Điểm AI
           </div>
-          <div
-            class="rounded-2xl bg-white/80 p-2 text-center shadow-sm dark:bg-neutral-950/80"
-          >
-            <div class="font-semibold">{{ props.fileData?.pages ?? "-" }}</div>
-            <div class="text-xs text-muted">Trang</div>
-          </div>
-          <div
-            class="rounded-2xl bg-white/80 p-2 text-center shadow-sm dark:bg-neutral-950/80"
-          >
-            <div class="font-semibold">
-              {{ props.fileData?.wordCount ?? "-" }}
+          <div class="mt-4 flex flex-col gap-3">
+            <div class="flex items-center gap-4">
+              <UProgress v-model="props.aiScore" />
+              <span class="text-lg font-semibold">{{ props.aiScore }}%</span>
             </div>
-            <div class="text-xs text-muted">Từ</div>
+            <div v-if="props.reportDetails?.aiReportPath" class="flex gap-2 w-full mt-2">
+              <UButton class="flex-1 justify-center shadow-sm" size="sm" color="primary" variant="solid"
+                :loading="loadingAi"
+                icon="i-lucide-download" @click="downloadReport(props.reportDetails.aiReportPath, 'ai')">
+                Tải báo cáo kiểm tra AI
+              </UButton>
+            </div>
           </div>
         </div>
+
+        <div
+          class="rounded-3xl border border-primary/5 bg-gradient-to-br from-primary-50/50 to-white p-5 shadow-sm dark:from-primary-950/20 dark:to-neutral-900/50 dark:border-primary/10">
+          <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+            Điểm đạo văn
+          </div>
+          <div class="mt-4 flex flex-col gap-3">
+            <div class="flex items-center gap-4">
+              <UProgress v-model="props.similarityScore" />
+              <span class="text-lg font-semibold">{{ props.similarityScore }}%</span>
+            </div>
+            <div v-if="props.reportDetails?.similarityReportPath" class="flex gap-2 w-full mt-2">
+              <UButton class="flex-1 justify-center shadow-sm" size="sm" color="primary" variant="solid"
+                icon="i-lucide-download"
+                :loading="loadingSimilarity"
+                @click="downloadReport(props.reportDetails.similarityReportPath, 'similarity')">
+                Tải báo cáo kiểm tra đạo văn
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div :class="['mt-6 grid gap-4', previewUrlAi && previewUrlSimilarity ? 'lg:grid-cols-2' : '']">
+         <div v-if="previewUrlAi" class="flex flex-col gap-2">
+            <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">Báo cáo AI</div>
+            <!-- <iframe :src="previewUrlAi" class="w-full h-[65vh] rounded-xl border border-primary/10 shadow-sm" title="AI Report Preview"></iframe> -->
+            <embed type="application/pdf" :src="previewUrlAi" class="w-full h-[70vh] rounded-xl border border-primary/10 shadow-sm" />
+         </div>
+         <div v-if="previewUrlSimilarity" class="flex flex-col gap-2">
+            <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">Báo cáo Đạo văn</div>
+            <!-- <iframe :src="previewUrlSimilarity" class="w-full h-[65vh] rounded-xl border border-primary/10 shadow-sm" title="Similarity Report Preview"></iframe> -->
+            <embed type="application/pdf" :src="previewUrlSimilarity" class="w-full h-[70vh] rounded-xl border border-primary/10 shadow-sm" />
+         </div>
       </div>
     </template>
-
-    <div class="grid gap-4 sm:grid-cols-2">
-      <div
-        class="rounded-3xl border border-neutral-200/80 bg-white/90 p-4 shadow-sm dark:border-neutral-800/80 dark:bg-neutral-950/80"
-      >
-        <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">
-          Điểm AI
-        </div>
-        <div class="mt-4 flex items-center gap-4">
-          <UProgress v-model="props.aiScore" />
-          <span class="text-lg font-semibold">{{ props.aiScore }}%</span>
-        </div>
-      </div>
-
-      <div
-        class="rounded-3xl border border-neutral-200/80 bg-white/90 p-4 shadow-sm dark:border-neutral-800/80 dark:bg-neutral-950/80"
-      >
-        <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">
-          Điểm đạo văn
-        </div>
-        <div class="mt-4 flex items-center gap-4">
-          <UProgress v-model="props.similarityScore" />
-          <span class="text-lg font-semibold"
-            >{{ props.similarityScore }}%</span
-          >
-        </div>
-      </div>
-    </div>
-
-    <p v-if="props.footerText" class="pt-4 text-sm text-muted">
-      {{ props.footerText }}
-    </p>
-  </UCard>
+  </UModal>
 </template>

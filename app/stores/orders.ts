@@ -96,6 +96,8 @@ export const useOrdersStore = defineStore("orders", () => {
     aiScore: number,
     similarityScore: number,
     notes?: string,
+    aiReportFile?: File,
+    similarityReportFile?: File
   ) => {
     if (
       !profile.value ||
@@ -115,11 +117,46 @@ export const useOrdersStore = defineStore("orders", () => {
       throw new Error("Order not assigned to you");
     }
 
+    let aiReportPath;
+    let similarityReportPath;
+
+    if (aiReportFile) {
+      const ext = aiReportFile.name.split(".").pop() || "pdf";
+      aiReportPath = `reports/${orderId}/ai_report_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(aiReportPath, aiReportFile, { upsert: true });
+      if (uploadError) throw uploadError;
+    }
+
+    if (similarityReportFile) {
+      const ext = similarityReportFile.name.split(".").pop() || "pdf";
+      similarityReportPath = `reports/${orderId}/similarity_report_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(similarityReportPath, similarityReportFile, { upsert: true });
+      if (uploadError) throw uploadError;
+    }
+
+    // Fetch existing report details to avoid overwriting file paths if not re-uploading
+    const { data: existingReport } = await supabase
+      .from("reports")
+      .select("details")
+      .eq("order_id", orderId)
+      .single();
+
+    const existingDetails = (existingReport?.details as any) || {};
+
     const { error } = await supabase.from("reports").upsert({
       order_id: orderId,
       ai_score: aiScore,
       similarity_score: similarityScore,
-      details: notes ? { notes } : null,
+      details: {
+        ...existingDetails,
+        notes: notes !== undefined ? notes : existingDetails.notes,
+        ...(aiReportPath ? { aiReportPath } : {}),
+        ...(similarityReportPath ? { similarityReportPath } : {}),
+      },
     }, { onConflict: 'order_id' });
 
     if (error) throw error;
@@ -147,6 +184,15 @@ export const useOrdersStore = defineStore("orders", () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const getPreviewUrl = async (filePath: string) => {
+    const { data, error } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+    if (error) throw error;
+    return data.signedUrl;
   };
 
   let activeChannel: any = null;
@@ -218,10 +264,10 @@ export const useOrdersStore = defineStore("orders", () => {
           if (payload.new?.user_id !== profile.value!.id && payload.old?.user_id !== profile.value!.id) {
             return; // Not my order
           }
-          
+
           let didStatusChange = false;
           let newStatus = '';
-          
+
           if (payload.eventType === "UPDATE") {
             const existingOrder = orders.value.find(o => o.id === orderId);
             const previousStatus = payload.old?.status || existingOrder?.status;
@@ -237,9 +283,9 @@ export const useOrdersStore = defineStore("orders", () => {
           if (didStatusChange) {
             const updatedOrder = orders.value.find((o) => o.id === payload.new.id);
             const fileName = updatedOrder?.documents?.original_filename ?? 'Tài liệu';
-            
+
             playSound();
-            
+
             if (newStatus === "completed") {
               toast.add({
                 title: "Đơn hàng hoàn tất",
@@ -260,16 +306,16 @@ export const useOrdersStore = defineStore("orders", () => {
         if (role === "employee") {
           const isAssignedToMe = payload.new?.assigned_to === profile.value!.id || payload.old?.assigned_to === profile.value!.id;
           const isNewUnassigned = payload.eventType === "INSERT" && payload.new?.assigned_to === null;
-          
+
           if (isAssignedToMe || isNewUnassigned) {
             updateLocalOrder(updatedOrder);
-            
+
             if (isNewUnassigned) {
               const newOrder = orders.value.find((o) => o.id === payload.new.id);
               const fileName = newOrder?.documents?.original_filename ?? 'Tài liệu mới';
               const typeMap: Record<string, string> = { ai: 'AI', similarity: 'Đạo văn', combo: 'Combo' };
               const typeLabel = newOrder?.check_type ? typeMap[newOrder.check_type] : '';
-              
+
               playSound();
               toast.add({
                 title: "Đơn mới",
@@ -330,6 +376,7 @@ export const useOrdersStore = defineStore("orders", () => {
     assignOrder,
     submitReport,
     downloadDocument,
+    getPreviewUrl,
     subscribeToOrders,
     unassignedCount,
   };

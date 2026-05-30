@@ -150,11 +150,6 @@ const buyCredits = async (credits: number) => {
               </p>
 
               <div class="mt-5 flex flex-wrap gap-2">
-                <UBadge color="error">
-                  Check AI:
-                  {{ aiCreditCost }} credits
-                </UBadge>
-
                 <UBadge color="warning">
                   Check đạo văn:
                   {{ similarityCreditCost }} credits

@@ -6,9 +6,13 @@ import type { Order } from "~/types";
 
 const props = defineProps<{
   orders: Order[];
-  userRole: "customer" | "employee" | "admin";
-  profileId: string;
 }>();
+
+const { profile } = useProfile();
+const user = useSupabaseUser();
+
+const userRole = computed(() => user.value?.app_metadata?.role || "customer");
+const profileId = computed(() => profile.value?.id);
 
 const emit = defineEmits<{
   (e: "assign", order: Order): void;
@@ -73,7 +77,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
 
   ];
 
-  if (props.userRole !== "customer") {
+  if (userRole.value !== "customer") {
     cols.push({
       id: "customer",
       accessorFn: (row: any) => row.customer?.name ?? "Không rõ",
@@ -155,7 +159,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
 
         const buttons = [];
 
-        if (props.userRole !== "customer") {
+        if (userRole.value !== "customer") {
           if (!order.assigned_to) {
             buttons.push(
               h(
@@ -174,7 +178,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
             );
           }
 
-          if (order.assigned_to === props.profileId) {
+          if (order.assigned_to === profileId.value) {
             if (order.documents.file_path === '[DELETED]') {
               buttons.push(
                 h(
@@ -202,7 +206,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
           }
 
           if (
-            order.assigned_to === props.profileId &&
+            order.assigned_to === profileId.value &&
             (order.status === "processing" || order.status === "completed")
           ) {
             buttons.push(
@@ -266,7 +270,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
           v-model="filters.checkType"
           :items="[
             { label: 'Tất cả loại', value: 'all' },
-            { label: 'AI', value: 'ai' },
+            // { label: 'AI', value: 'ai' },
             { label: 'Đạo văn', value: 'similarity' },
             { label: 'Combo', value: 'combo' }
           ]"

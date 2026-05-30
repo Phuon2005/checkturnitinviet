@@ -87,15 +87,14 @@ export default eventHandler(async (event) => {
   let totalProcessingTime = 0;
   let completedOrdersCount = 0;
   
-  const checkTypes = { ai: 0, similarity: 0, combo: 0 };
+  const checkTypes = { similarity: 0, combo: 0 };
   const orderStatus = { pending: 0, processing: 0, completed: 0, failed: 0 };
   
   const empStats = new Map<string, { name: string, count: number, totalTime: number }>();
 
   for (const o of (orders || [])) {
     // A1: Check Types
-    if (o.check_type === 'ai') checkTypes.ai++;
-    else if (o.check_type === 'similarity') checkTypes.similarity++;
+    if (o.check_type === 'similarity') checkTypes.similarity++;
     else if (o.check_type === 'combo') checkTypes.combo++;
 
     // B3: Order Status
