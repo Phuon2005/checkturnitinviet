@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ContactModal } from "#components";
 import type { NavigationMenuItem } from "@nuxt/ui";
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -55,7 +56,11 @@ onUnmounted(() => {
   }
 });
 
-const items = computed<NavigationMenuItem[]>(() => [
+const overlay = useOverlay()
+
+const contactModal = overlay.create(ContactModal)
+
+const items = computed<NavigationMenuItem[]>(() => [[
   {
     label: "Dashboard",
     icon: "i-lucide-layout-dashboard",
@@ -66,6 +71,13 @@ const items = computed<NavigationMenuItem[]>(() => [
     label: "Tải lên",
     icon: "i-lucide-upload-cloud",
     to: "/dashboard/upload",
+  },
+  {
+    label: "Hạ đạo văn, hạ AI",
+    icon: "i-lucide-file-badge",
+    onSelect: () => {
+      contactModal.open()
+    }
   },
   {
     label: "Mua credits",
@@ -113,37 +125,14 @@ const items = computed<NavigationMenuItem[]>(() => [
         },
       ]
     : []),
-]);
-
-const groups = computed(() => [
+], [
   {
-    id: "navigation",
-    label: "Navigation",
-    items: items.value.map((item) => ({
-      id: item.to ?? item.label,
-      label: item.label,
-      icon: item.icon,
-      description: `Đi đến ${item.label}`,
-      to: item.to,
-      target: item.target,
-    })),
-  },
-  {
-    id: "support",
-    label: "Support",
-    items: [
-      {
-        id: "support",
-        label: "Help & Support",
-        icon: "i-lucide-help-circle",
-        description: "Mở trang trợ giúp",
-        to: "https://zalo.me",
-        target: "_blank",
-      },
-    ],
-  },
-]);
-
+    label: "Liên hệ hỗ trợ",
+    icon: "i-simple-icons-zalo",
+    to: "https://zalo.me/0986408788",
+    target: "_blank"
+  }
+]]);
 </script>
 
 <template>
@@ -180,8 +169,6 @@ const groups = computed(() => [
         />
       </template>
     </UDashboardSidebar>
-
-      <UDashboardSearch :groups="groups" />
       <slot />
     </UDashboardGroup>
   </div>

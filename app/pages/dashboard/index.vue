@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ContactModal } from '#components';
 import type { Order } from '~/types';
 
 definePageMeta({
@@ -22,9 +23,7 @@ const { creditPrice } = useSettings();
 // const { data: page } = await useAsyncData('index', () => queryCollection('index').first())
 
 const supportContacts = [
-  { name: "Phong", region: "Vietnam", method: "Zalo", href: "https://zalo.me" },
-  { name: "Ayaan", region: "Bangladesh", method: "WA", href: "https://wa.me" },
-  { name: "Ken", region: "Kenya", method: "WA", href: "https://wa.me" },
+  { name: "Phương", region: "Vietnam", method: "Zalo", href: "https://zalo.me/0986408788" },
 ];
 
 const previewModal = ref(false)
@@ -35,6 +34,10 @@ const openPreview = (order: Order) => {
   previewModal.value = true
   // TODO: modal should be more polished, looks ugly rn
 }
+
+const overlay = useOverlay()
+
+const contactModal = overlay.create(ContactModal)
 </script>
 <template>
   <UDashboardPanel id="dashboard" :ui="{ body: 'lg:py-8' }" v-if="profile">
@@ -54,16 +57,17 @@ const openPreview = (order: Order) => {
           </div>
         </UPageCard>
 
-        <UCard title="Liên hệ support" description="Nếu bạn cần trợ giúp về  thanh toán hoặc việc khác,
-              chọn kênh phù hợp bên dưới." class="sm:col-span-2">
+        <UPageCard title="Liên hệ support" description="Nếu bạn cần trợ giúp về  thanh toán hoặc việc khác,
+              chọn kênh phù hợp bên dưới." spotlight highlight class="sm:col-span-2" @click="contactModal.open()">
           <div class="grid gap-4 sm:grid-cols-3">
-            <div v-for="contact in supportContacts" :key="contact.name"
+            <a v-for="contact in supportContacts" :key="contact.name" :href="contact.href" target="_blank"
               class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-slate-950">
-              <div class="flex items-center gap-3">
+              <div class="flex flex-col items-center text-center gap-2">
                 <div
                   class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                  <UIcon name="i-lucide-user" class="h-5 w-5" />
+                  <img class="rounded-xl" src="assets/img/contact-zalo-avatar.jpg" />
                 </div>
+
                 <div>
                   <p class="text-sm font-semibold">{{ contact.name }}</p>
                   <p class="text-xs text-slate-500 dark:text-slate-400">
@@ -71,24 +75,25 @@ const openPreview = (order: Order) => {
                   </p>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
-        </UCard>
+        </UPageCard>
       </div>
       <div>
         <!-- <template #header> -->
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 class="text-xl font-semibold text-slate-900 dark:text-white"></h2>
-              <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                Xem trạng thái kiểm tra và kết quả cho các tài liệu đã tải lên.
-              </p>
-            </div>
-            <UButton to="/dashboard/upload" variant="outline" icon="i-lucide-file-up">Tải lên tài liệu mới</UButton>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-slate-900 dark:text-white"></h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Xem trạng thái kiểm tra và kết quả cho các tài liệu đã tải lên.
+            </p>
           </div>
+          <UButton to="/dashboard/upload" variant="outline" icon="i-lucide-file-up">Tải lên tài liệu mới</UButton>
+        </div>
         <!-- </template> -->
 
-        <DashboardOrdersTable :orders="orders.filter(o => o.user_id === profile?.id)" user-role="customer" :profile-id="profile?.id" @view="openPreview">
+        <DashboardOrdersTable :orders="orders.filter(o => o.user_id === profile?.id)" user-role="customer"
+          :profile-id="profile?.id" @view="openPreview">
         </DashboardOrdersTable>
       </div>
       <UModal v-model:open="previewModal" :ui="{ content: 'max-w-2xl' }">
@@ -107,7 +112,7 @@ const openPreview = (order: Order) => {
                 fileSize:
                   selectedOrder.documents.file_size ?? 0,
               }" :footer-text="selectedOrder.reports?.details?.notes
-          " />
+                " />
         </template>
       </UModal>
     </template>
