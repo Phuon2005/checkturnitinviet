@@ -20,22 +20,25 @@ const previewUrlSimilarity = ref('');
 const loadingAi = ref(false);
 const loadingSimilarity = ref(false);
 
-onMounted(async () => {
-  if (props.reportDetails?.aiReportPath) {
+watch(() => props.reportDetails, async (newDetails) => {
+  previewUrlAi.value = '';
+  previewUrlSimilarity.value = '';
+
+  if (newDetails?.aiReportPath) {
     try {
-      previewUrlAi.value = await getPreviewUrl(props.reportDetails.aiReportPath);
+      previewUrlAi.value = await getPreviewUrl(newDetails.aiReportPath);
     } catch (e: any) {
       console.error(e);
     }
   }
-  if (props.reportDetails?.similarityReportPath) {
+  if (newDetails?.similarityReportPath) {
     try {
-      previewUrlSimilarity.value = await getPreviewUrl(props.reportDetails.similarityReportPath);
+      previewUrlSimilarity.value = await getPreviewUrl(newDetails.similarityReportPath);
     } catch (e: any) {
       console.error(e);
     }
   }
-});
+}, { immediate: true });
 
 const downloadReport = async (path: string, type: 'ai' | 'similarity') => {
   const fileName = `bao_cao_${type}_${Date.now()}.pdf`;
@@ -112,13 +115,11 @@ Note từ nhân viên: ${props.footerText}
       <div :class="['mt-6 grid gap-4', previewUrlAi && previewUrlSimilarity ? 'lg:grid-cols-2' : '']">
          <div v-if="previewUrlAi" class="flex flex-col gap-2">
             <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">Báo cáo AI</div>
-            <!-- <iframe :src="previewUrlAi" class="w-full h-[65vh] rounded-xl border border-primary/10 shadow-sm" title="AI Report Preview"></iframe> -->
-            <embed type="application/pdf" :src="previewUrlAi" class="w-full h-[70vh] rounded-xl border border-primary/10 shadow-sm" />
+            <embed :key="previewUrlAi" type="application/pdf" :src="previewUrlAi" class="w-full h-[70vh] rounded-xl border border-primary/10 shadow-sm" />
          </div>
          <div v-if="previewUrlSimilarity" class="flex flex-col gap-2">
             <div class="text-sm font-medium text-neutral-600 dark:text-neutral-300">Báo cáo Đạo văn</div>
-            <!-- <iframe :src="previewUrlSimilarity" class="w-full h-[65vh] rounded-xl border border-primary/10 shadow-sm" title="Similarity Report Preview"></iframe> -->
-            <embed type="application/pdf" :src="previewUrlSimilarity" class="w-full h-[70vh] rounded-xl border border-primary/10 shadow-sm" />
+            <embed :key="previewUrlSimilarity" type="application/pdf" :src="previewUrlSimilarity" class="w-full h-[70vh] rounded-xl border border-primary/10 shadow-sm" />
          </div>
       </div>
     </template>
