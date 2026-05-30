@@ -17,5 +17,10 @@ export default eventHandler(async (event) => {
     console.error("Error fetching active promo code:", error);
   }
 
-  return data || null;
+  if (!data) throw createError({
+    statusCode: 404,
+    statusMessage: "No active promo code"
+  })
+
+  return data;
 });

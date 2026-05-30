@@ -26,8 +26,9 @@ await useAsyncData(
   async () => {
     if (profile.value) {
       await ordersStore.fetchOrders();
+      return true;
     }
-    return true;
+    return false;
   },
   { watch: [() => profile.value ? `${profile.value.id}-${profile.value.role}` : null] }
 );

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data: promoData } = useAsyncData('active-promo', () => $fetch('/api/promo/active'));
+const { data: promoData } = await useFetch('/api/promo/active');
 const dismissedPromos = useCookie<string[]>('dismissed_promos', { default: () => [] });
 
 const activePromo = computed(() => {
