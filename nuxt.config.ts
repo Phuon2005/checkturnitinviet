@@ -51,4 +51,9 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false,
   },
+  content: {
+    experimental: {
+      sqliteConnector: "native",
+    },
+  },
 });

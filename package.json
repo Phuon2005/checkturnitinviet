@@ -2,6 +2,9 @@
   "name": "checkturnitinviet",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -27,7 +30,6 @@
     "@unovis/vue": "^1.6.5",
     "@vueuse/core": "^14.3.0",
     "@vueuse/nuxt": "^14.3.0",
-    "better-sqlite3": "^12.9.0",
     "date-fns": "^4.1.0",
     "eslint": "^10.3.0",
     "nuxt": "^4.4.6",
@@ -44,6 +46,7 @@
     "@iconify-json/lucide": "^1.2.106",
     "@iconify-json/simple-icons": "^1.2.81",
     "@types/node": "^25.8.0",
+    "better-sqlite3": "^12.9.0",
     "prettier": "^3.8.3",
     "supabase": "^2.98.2"
   }
