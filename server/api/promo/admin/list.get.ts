@@ -1,4 +1,7 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from "#supabase/server";
+import {
+  serverSupabaseServiceRole,
+  serverSupabaseUser,
+} from "#supabase/server";
 
 export default eventHandler(async (event) => {
   const user = await serverSupabaseUser(event);

@@ -24,6 +24,6 @@ export const useProfile = () => {
     profile,
     fetch: fetchProfile,
     loading,
-    clear
+    clear,
   };
 };

@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     "@nuxt/content",
     "@nuxtjs/supabase",
     "@pinia/nuxt",
-    "@nuxt/hints"
+    "@nuxt/hints",
   ],
   icon: {
     clientBundle: {
@@ -24,8 +24,8 @@ export default defineNuxtConfig({
       includeCustomCollections: true,
     },
     serverBundle: {
-      collections: ['lucide', 'simple-icons']
-    }
+      collections: ["lucide", "simple-icons"],
+    },
   },
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
@@ -49,5 +49,5 @@ export default defineNuxtConfig({
   },
   supabase: {
     redirect: false,
-  }
+  },
 });

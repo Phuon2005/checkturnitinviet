@@ -36,27 +36,35 @@ const { data, pending } = useFetch("/api/advanced-stats", {
         </template>
       </UDashboardToolbar>
     </template>
-    
+
     <template #body>
       <LazyDashboardHomeStats :period="period" :range="range" />
       <LazyDashboardHomeChart :period="period" :range="range" />
       <LazyDashboardHomeSales :period="period" :range="range" />
       <div v-if="pending" class="py-12 flex justify-center">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+        <UIcon
+          name="i-lucide-loader-2"
+          class="w-8 h-8 animate-spin text-primary"
+        />
       </div>
-      
+
       <div v-else-if="data" class="flex flex-col gap-6">
         <LazyDashboardStatsOverview :data="data.overview" />
-        
+
         <UPageGrid class="lg:grid-cols-2 gap-4 sm:gap-6">
           <LazyDashboardStatsCheckType :data="data.checkTypes" />
           <LazyDashboardStatsOrderStatus :data="data.orderStatus" />
         </UPageGrid>
 
-        <LazyDashboardStatsSignups :data="data.signupsOverTime" :period="period" />
-        
+        <LazyDashboardStatsSignups
+          :data="data.signupsOverTime"
+          :period="period"
+        />
+
         <UPageGrid class="lg:grid-cols-2 gap-4 sm:gap-6">
-          <LazyDashboardStatsEmployeePerformance :data="data.employeePerformance" />
+          <LazyDashboardStatsEmployeePerformance
+            :data="data.employeePerformance"
+          />
           <LazyDashboardStatsTopCustomers :data="data.topCustomers" />
         </UPageGrid>
       </div>

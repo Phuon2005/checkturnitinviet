@@ -114,7 +114,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
             { label: 'Hoàn tất', value: 'completed' },
             { label: 'Đang xử lý', value: 'processing' },
             { label: 'Chờ xử lý', value: 'pending' },
-            { label: 'Lỗi', value: 'failed' }
+            { label: 'Lỗi', value: 'failed' },
           ]"
           placeholder="Lọc trạng thái"
           class="min-w-36"
@@ -126,7 +126,7 @@ const columns = computed<TableColumn<Order>[]>(() => {
             { label: 'Tất cả loại', value: 'all' },
             // { label: 'AI', value: 'ai' },
             { label: 'Đạo văn', value: 'similarity' },
-            { label: 'Combo', value: 'combo' }
+            { label: 'Combo', value: 'combo' },
           ]"
           placeholder="Lọc loại check"
           class="min-w-36"
@@ -138,15 +138,20 @@ const columns = computed<TableColumn<Order>[]>(() => {
               ?.getAllColumns()
               .filter((column: any) => column.getCanHide())
               .map((column: any) => ({
-                label: typeof column.columnDef.header === 'string' ? column.columnDef.header : (column.id.charAt(0).toUpperCase() + column.id.slice(1)),
+                label:
+                  typeof column.columnDef.header === 'string'
+                    ? column.columnDef.header
+                    : column.id.charAt(0).toUpperCase() + column.id.slice(1),
                 type: 'checkbox' as const,
                 checked: column.getIsVisible(),
                 onUpdateChecked(checked: boolean) {
-                  table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
+                  table?.tableApi
+                    ?.getColumn(column.id)
+                    ?.toggleVisibility(!!checked);
                 },
                 onSelect(e?: Event) {
-                  e?.preventDefault()
-                }
+                  e?.preventDefault();
+                },
               })) || []
           "
           :content="{ align: 'end' }"
@@ -181,10 +186,18 @@ const columns = computed<TableColumn<Order>[]>(() => {
       <template #check_type-cell="{ row }">
         <UBadge
           v-if="row.original.check_type"
-          :color="{ ai: 'primary', similarity: 'warning', combo: 'success' }[row.original.check_type as string] as any || 'neutral'"
+          :color="
+            ({ ai: 'primary', similarity: 'warning', combo: 'success' }[
+              row.original.check_type as string
+            ] as any) || 'neutral'
+          "
           variant="subtle"
         >
-          {{ { ai: 'AI', similarity: 'Đạo văn', combo: 'Combo' }[row.original.check_type as string] }}
+          {{
+            { ai: "AI", similarity: "Đạo văn", combo: "Combo" }[
+              row.original.check_type as string
+            ]
+          }}
         </UBadge>
         <span v-else>-</span>
       </template>
@@ -202,19 +215,41 @@ const columns = computed<TableColumn<Order>[]>(() => {
       </template>
 
       <template #date-cell="{ row }">
-        {{ formatDateTime(row.original.created_at || row.original.documents.uploaded_at) }}
+        {{
+          formatDateTime(
+            row.original.created_at || row.original.documents.uploaded_at,
+          )
+        }}
       </template>
 
       <template #date-updated-cell="{ row }">
-        {{ formatDateTime(row.original.updated_at || row.original.documents.uploaded_at) }}
+        {{
+          formatDateTime(
+            row.original.updated_at || row.original.documents.uploaded_at,
+          )
+        }}
       </template>
 
       <template #status-cell="{ row }">
         <UBadge
-          :color="{ completed: 'success', processing: 'primary', pending: 'warning', failed: 'error' }[row.original.status || 'pending'] as any"
+          :color="
+            {
+              completed: 'success',
+              processing: 'primary',
+              pending: 'warning',
+              failed: 'error',
+            }[row.original.status || 'pending'] as any
+          "
           variant="subtle"
         >
-          {{ { completed: 'Hoàn tất', processing: 'Đang xử lý', pending: 'Chờ xử lý', failed: 'Lỗi' }[row.original.status || 'pending'] }}
+          {{
+            {
+              completed: "Hoàn tất",
+              processing: "Đang xử lý",
+              pending: "Chờ xử lý",
+              failed: "Lỗi",
+            }[row.original.status || "pending"]
+          }}
         </UBadge>
       </template>
 
@@ -233,7 +268,11 @@ const columns = computed<TableColumn<Order>[]>(() => {
           >
             Nhận đơn
           </UButton>
-          <template v-if="userRole !== 'customer' && row.original.assigned_to === profileId">
+          <template
+            v-if="
+              userRole !== 'customer' && row.original.assigned_to === profileId
+            "
+          >
             <UBadge
               v-if="row.original.documents.file_path === '[DELETED]'"
               color="neutral"
@@ -251,13 +290,24 @@ const columns = computed<TableColumn<Order>[]>(() => {
               Tải xuống
             </UButton>
             <UButton
-              v-if="row.original.status === 'processing' || row.original.status === 'completed'"
+              v-if="
+                row.original.status === 'processing' ||
+                row.original.status === 'completed'
+              "
               size="xs"
-              :color="row.original.status === 'completed' ? 'neutral' : 'primary'"
-              :variant="row.original.status === 'completed' ? 'outline' : 'solid'"
+              :color="
+                row.original.status === 'completed' ? 'neutral' : 'primary'
+              "
+              :variant="
+                row.original.status === 'completed' ? 'outline' : 'solid'
+              "
               @click.stop="emit('submit-report', row.original)"
             >
-              {{ row.original.status === 'completed' ? 'Sửa báo cáo' : 'Nộp báo cáo' }}
+              {{
+                row.original.status === "completed"
+                  ? "Sửa báo cáo"
+                  : "Nộp báo cáo"
+              }}
             </UButton>
           </template>
         </div>
@@ -270,17 +320,26 @@ const columns = computed<TableColumn<Order>[]>(() => {
       </template>
     </UTable>
 
-    <div class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto">
+    <div
+      class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto"
+    >
       <div class="text-sm text-muted">
         Hiển thị {{ totalOrders || 0 }} kết quả.
       </div>
 
-      <div class="flex items-center gap-1.5" v-if="totalOrders > pagination.pageSize">
+      <div
+        class="flex items-center gap-1.5"
+        v-if="totalOrders > pagination.pageSize"
+      >
         <UPagination
           :default-page="pagination.pageIndex + 1"
           :items-per-page="pagination.pageSize"
           :total="totalOrders"
-          @update:page="(p: number) => { pagination.pageIndex = p - 1 }"
+          @update:page="
+            (p: number) => {
+              pagination.pageIndex = p - 1;
+            }
+          "
         />
       </div>
     </div>

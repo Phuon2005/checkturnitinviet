@@ -12,7 +12,14 @@ useSeoMeta({
 
 const { profile } = useProfile();
 const { initiatePayment, isLoading } = usePayments();
-const { settings, fetchSettings, creditPrice, aiCreditCost, similarityCreditCost, comboCreditCost } = useSettings();
+const {
+  settings,
+  fetchSettings,
+  creditPrice,
+  aiCreditCost,
+  similarityCreditCost,
+  comboCreditCost,
+} = useSettings();
 
 const customCredits = ref(25);
 
@@ -23,7 +30,12 @@ onMounted(() => {
 const totalPrice = computed(() => customCredits.value * creditPrice.value);
 
 const promoCode = ref("");
-const appliedPromo = ref<{ valid: boolean; discountPercentage?: number; bonusCredits?: number; message?: string } | null>(null);
+const appliedPromo = ref<{
+  valid: boolean;
+  discountPercentage?: number;
+  bonusCredits?: number;
+  message?: string;
+} | null>(null);
 const isValidatingPromo = ref(false);
 
 const applyPromoCode = async () => {
@@ -31,31 +43,41 @@ const applyPromoCode = async () => {
     appliedPromo.value = null;
     return;
   }
-  
+
   isValidatingPromo.value = true;
   try {
     const res = await $fetch("/api/promo/validate", {
       method: "POST",
-      body: { code: promoCode.value }
+      body: { code: promoCode.value },
     });
     appliedPromo.value = res;
   } catch (e) {
-    appliedPromo.value = { valid: false, message: "Lỗi kiểm tra mã khuyến mãi" };
+    appliedPromo.value = {
+      valid: false,
+      message: "Lỗi kiểm tra mã khuyến mãi",
+    };
   } finally {
     isValidatingPromo.value = false;
   }
 };
 
 const tiers = computed<PricingTableTier[]>(() => {
-  const discount = appliedPromo.value?.valid && appliedPromo.value.discountPercentage ? appliedPromo.value.discountPercentage : 0;
-  const bonus = appliedPromo.value?.valid && appliedPromo.value.bonusCredits ? appliedPromo.value.bonusCredits : 0;
+  const discount =
+    appliedPromo.value?.valid && appliedPromo.value.discountPercentage
+      ? appliedPromo.value.discountPercentage
+      : 0;
+  const bonus =
+    appliedPromo.value?.valid && appliedPromo.value.bonusCredits
+      ? appliedPromo.value.bonusCredits
+      : 0;
 
   return [
     {
       id: "starter",
       title: "Starter",
       description: bonus ? `Tặng thêm ${bonus} credits` : "Phù hợp dùng thử",
-      price: formatCurrency(10 * creditPrice.value * (1 - discount / 100)) + "đ",
+      price:
+        formatCurrency(10 * creditPrice.value * (1 - discount / 100)) + "đ",
       badge: discount ? `Giảm ${discount}%` : "",
       button: {
         label: "Mua ngay",
@@ -67,7 +89,8 @@ const tiers = computed<PricingTableTier[]>(() => {
       id: "popular",
       title: "Popular",
       description: bonus ? `Tặng thêm ${bonus} credits` : "Phổ biến nhất",
-      price: formatCurrency(50 * creditPrice.value * (1 - discount / 100)) + "đ",
+      price:
+        formatCurrency(50 * creditPrice.value * (1 - discount / 100)) + "đ",
       badge: discount ? `Giảm ${discount}%` : "Best value",
       highlight: true,
       button: {
@@ -78,8 +101,11 @@ const tiers = computed<PricingTableTier[]>(() => {
     {
       id: "pro",
       title: "Pro",
-      description: bonus ? `Tặng thêm ${bonus} credits` : "Dành cho người dùng thường xuyên",
-      price: formatCurrency(100 * creditPrice.value * (1 - discount / 100)) + "đ",
+      description: bonus
+        ? `Tặng thêm ${bonus} credits`
+        : "Dành cho người dùng thường xuyên",
+      price:
+        formatCurrency(100 * creditPrice.value * (1 - discount / 100)) + "đ",
       badge: discount ? `Giảm ${discount}%` : "",
       button: {
         label: "Mua ngay",
@@ -180,12 +206,18 @@ const buyCredits = async (credits: number) => {
 
         <!-- PROMO CODE -->
         <div class="max-w-md mx-auto w-full">
-          <UCard class="relative overflow-hidden group border-dashed border-2 border-primary/30 hover:border-primary/60 transition-colors duration-500 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-            <div class="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-            
+          <UCard
+            class="relative overflow-hidden group border-dashed border-2 border-primary/30 hover:border-primary/60 transition-colors duration-500 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+            ></div>
+
             <div class="relative z-10">
               <div class="flex items-center gap-3 mb-4">
-                <div class="p-2 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <div
+                  class="p-2 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
+                >
                   <UIcon name="i-lucide-ticket" class="w-5 h-5" />
                 </div>
                 <div>
@@ -195,22 +227,39 @@ const buyCredits = async (credits: number) => {
               </div>
 
               <div class="flex gap-2 relative">
-                <UInput 
-                  v-model="promoCode" 
-                  placeholder="Ví dụ: CHECKVN2026..." 
-                  class="flex-1" 
+                <UInput
+                  v-model="promoCode"
+                  placeholder="Ví dụ: CHECKVN2026..."
+                  class="flex-1"
                   size="lg"
-                  :disabled="isValidatingPromo" 
-                  @keyup.enter="applyPromoCode" 
+                  :disabled="isValidatingPromo"
+                  @keyup.enter="applyPromoCode"
                 >
                   <template #trailing v-if="appliedPromo?.valid">
-                    <UIcon name="i-lucide-check-circle-2" class="text-success w-5 h-5" />
+                    <UIcon
+                      name="i-lucide-check-circle-2"
+                      class="text-success w-5 h-5"
+                    />
                   </template>
                 </UInput>
-                <UButton :loading="isValidatingPromo" @click="applyPromoCode" color="primary" variant="soft" size="lg" class="px-6 font-medium">Áp dụng</UButton>
+                <UButton
+                  :loading="isValidatingPromo"
+                  @click="applyPromoCode"
+                  color="primary"
+                  variant="soft"
+                  size="lg"
+                  class="px-6 font-medium"
+                  >Áp dụng</UButton
+                >
               </div>
 
-              <div v-if="appliedPromo" class="mt-4 transition-all duration-300 transform origin-top" :class="appliedPromo ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
+              <div
+                v-if="appliedPromo"
+                class="mt-4 transition-all duration-300 transform origin-top"
+                :class="
+                  appliedPromo ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                "
+              >
                 <UAlert
                   v-if="appliedPromo.valid"
                   color="success"
@@ -221,11 +270,17 @@ const buyCredits = async (credits: number) => {
                 >
                   <template #description>
                     <div class="flex flex-col gap-1.5 mt-1.5">
-                      <div v-if="appliedPromo.discountPercentage" class="flex items-center gap-1.5 text-sm font-medium text-success-600 dark:text-success-400">
+                      <div
+                        v-if="appliedPromo.discountPercentage"
+                        class="flex items-center gap-1.5 text-sm font-medium text-success-600 dark:text-success-400"
+                      >
                         <UIcon name="i-lucide-percent" class="w-4 h-4" />
                         Giảm {{ appliedPromo.discountPercentage }}% tổng đơn
                       </div>
-                      <div v-if="appliedPromo.bonusCredits" class="flex items-center gap-1.5 text-sm font-medium text-success-600 dark:text-success-400">
+                      <div
+                        v-if="appliedPromo.bonusCredits"
+                        class="flex items-center gap-1.5 text-sm font-medium text-success-600 dark:text-success-400"
+                      >
                         <UIcon name="i-lucide-gift" class="w-4 h-4" />
                         Tặng thêm {{ appliedPromo.bonusCredits }} credits
                       </div>
@@ -277,7 +332,10 @@ const buyCredits = async (credits: number) => {
 
                 <span class="font-semibold">
                   {{ customCredits }}
-                  <span v-if="appliedPromo?.valid && appliedPromo.bonusCredits" class="text-success ml-1">
+                  <span
+                    v-if="appliedPromo?.valid && appliedPromo.bonusCredits"
+                    class="text-success ml-1"
+                  >
                     + {{ appliedPromo.bonusCredits }} bonus
                   </span>
                 </span>
@@ -287,31 +345,33 @@ const buyCredits = async (credits: number) => {
                 <span>Tổng tiền</span>
 
                 <div class="text-right">
-                  <div v-if="appliedPromo?.valid && appliedPromo.discountPercentage" class="text-sm text-muted line-through">
+                  <div
+                    v-if="
+                      appliedPromo?.valid && appliedPromo.discountPercentage
+                    "
+                    class="text-sm text-muted line-through"
+                  >
                     {{ totalPrice.toLocaleString("vi-VN") }}đ
                   </div>
                   <span class="font-bold text-primary text-xl">
-                    {{ (totalPrice * (1 - (appliedPromo?.discountPercentage || 0) / 100)).toLocaleString("vi-VN") }}đ
+                    {{
+                      (
+                        totalPrice *
+                        (1 - (appliedPromo?.discountPercentage || 0) / 100)
+                      ).toLocaleString("vi-VN")
+                    }}đ
                   </span>
                 </div>
               </div>
 
               <div class="mt-4 text-sm text-muted">
                 Khoảng
-                {{
-                  Math.floor(customCredits / aiCreditCost)
-                }}
+                {{ Math.floor(customCredits / aiCreditCost) }}
                 lượt check AI, hoặc
-                {{
-                  Math.floor(
-                    customCredits / similarityCreditCost,
-                  )
-                }}
+                {{ Math.floor(customCredits / similarityCreditCost) }}
                 lượt check đạo văn, hoặc
 
-                {{
-                  Math.floor(customCredits / comboCreditCost)
-                }}
+                {{ Math.floor(customCredits / comboCreditCost) }}
                 lượt check combo
               </div>
             </div>

@@ -26,7 +26,7 @@ const columns: TableColumn<any>[] = [
     <template #header>
       <p class="font-semibold text-highlighted">Hiệu suất Nhân viên</p>
     </template>
-    
+
     <UTable
       :data="data"
       :columns="columns"
@@ -48,10 +48,14 @@ const columns: TableColumn<any>[] = [
         <div class="text-right w-full">Thời gian TB</div>
       </template>
       <template #avgTime-cell="{ row }">
-        <div class="text-right font-medium">{{ formatTime(row.getValue("avgTime")) }}</div>
+        <div class="text-right font-medium">
+          {{ formatTime(row.getValue("avgTime")) }}
+        </div>
       </template>
       <template #empty>
-        <div class="py-8 text-center text-muted">Không có dữ liệu nhân viên</div>
+        <div class="py-8 text-center text-muted">
+          Không có dữ liệu nhân viên
+        </div>
       </template>
     </UTable>
   </UCard>

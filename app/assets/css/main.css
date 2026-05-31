@@ -21,14 +21,16 @@
 
 body {
   @apply bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 antialiased selection:bg-emerald-500/30;
-  background-image: radial-gradient(at 0% 0%, hsla(160, 100%, 74%, 0.15) 0px, transparent 50%),
-                    radial-gradient(at 100% 0%, hsla(200, 100%, 70%, 0.15) 0px, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, hsla(160, 100%, 74%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(200, 100%, 70%, 0.15) 0px, transparent 50%);
   background-attachment: fixed;
 }
 
 .dark body {
-  background-image: radial-gradient(at 0% 0%, hsla(160, 100%, 30%, 0.15) 0px, transparent 50%),
-                    radial-gradient(at 100% 0%, hsla(200, 100%, 30%, 0.15) 0px, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, hsla(160, 100%, 30%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(200, 100%, 30%, 0.15) 0px, transparent 50%);
 }
 
 .dark {

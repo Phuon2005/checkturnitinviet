@@ -1,6 +1,8 @@
 <script setup lang="ts">
-const { data: promoData } = await useFetch('/api/promo/active');
-const dismissedPromos = useCookie<string[]>('dismissed_promos', { default: () => [] });
+const { data: promoData } = await useFetch("/api/promo/active");
+const dismissedPromos = useCookie<string[]>("dismissed_promos", {
+  default: () => [],
+});
 
 const activePromo = computed(() => {
   if (!promoData.value) return null;
@@ -15,7 +17,9 @@ const activePromo = computed(() => {
     v-if="activePromo"
     icon="i-lucide-tag"
     :title="activePromo.banner_message"
-    :actions="[{ label: 'Dùng mã ngay', to: '/dashboard/purchase', color: 'primary' }]"
+    :actions="[
+      { label: 'Dùng mã ngay', to: '/dashboard/purchase', color: 'primary' },
+    ]"
     close
   />
 </template>

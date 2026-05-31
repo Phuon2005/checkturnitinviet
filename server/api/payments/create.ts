@@ -1,4 +1,8 @@
-import { serverSupabaseClient, serverSupabaseUser, serverSupabaseServiceRole } from "#supabase/server";
+import {
+  serverSupabaseClient,
+  serverSupabaseUser,
+  serverSupabaseServiceRole,
+} from "#supabase/server";
 import crypto from "crypto";
 import { z } from "zod";
 import type { H3Event } from "h3";
@@ -8,8 +12,8 @@ function getClientIP(event: H3Event): string {
   if (forwarded) {
     // @ts-ignore
     return typeof forwarded === "string"
-      ? (forwarded.split(",")[0] || "127.0.0.1")
-      : (forwarded[0] || "127.0.0.1");
+      ? forwarded.split(",")[0] || "127.0.0.1"
+      : forwarded[0] || "127.0.0.1";
   }
   return event.node.req.socket.remoteAddress || "127.0.0.1";
 }
@@ -73,9 +77,14 @@ export default eventHandler(async (event) => {
       .eq("active", true)
       .single();
 
-    if (promo && (!promo.expires_at || new Date(promo.expires_at) > new Date())) {
+    if (
+      promo &&
+      (!promo.expires_at || new Date(promo.expires_at) > new Date())
+    ) {
       if (promo.discount_percentage) {
-        finalAmount = Math.floor(finalAmount * (1 - promo.discount_percentage / 100));
+        finalAmount = Math.floor(
+          finalAmount * (1 - promo.discount_percentage / 100),
+        );
       }
       if (promo.bonus_credits) {
         finalCredits += promo.bonus_credits;

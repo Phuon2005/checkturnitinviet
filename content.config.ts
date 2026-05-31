@@ -80,7 +80,11 @@ export const collections = {
           orientation: orientationEnum.optional(),
           reverse: z.boolean().optional(),
           features: z.array(createFeatureItemSchema()),
-          component: z.enum(["ai_detection", "originality_report", "overall_similarity"])
+          component: z.enum([
+            "ai_detection",
+            "originality_report",
+            "overall_similarity",
+          ]),
         }),
       ),
       testimonials: createBaseSchema().extend({

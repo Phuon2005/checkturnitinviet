@@ -28,18 +28,16 @@ const loading = ref(false);
 const fetchUsers = async () => {
   loading.value = true;
   try {
-    let query = supabase
-      .from("profiles")
-      .select("*", { count: "exact" });
-      
+    let query = supabase.from("profiles").select("*", { count: "exact" });
+
     if (debouncedSearch.value) {
       query = query.ilike("name", `%${debouncedSearch.value}%`);
     }
-    
+
     if (roleFilter.value !== "all") {
       query = query.eq("role", roleFilter.value);
     }
-    
+
     const from = pagination.value.pageIndex * pagination.value.pageSize;
     const to = from + pagination.value.pageSize - 1;
 
@@ -126,9 +124,16 @@ const deleteUser = async () => {
   if (!userToDelete.value) return;
   isDeleting.value = true;
   try {
-    const { error } = await supabase.from("profiles").delete().eq("id", userToDelete.value.id);
+    const { error } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", userToDelete.value.id);
     if (error) throw error;
-    toast.add({ title: "Thành công", description: "Đã xóa người dùng", color: "primary" });
+    toast.add({
+      title: "Thành công",
+      description: "Đã xóa người dùng",
+      color: "primary",
+    });
     deleteModal.value = false;
     await fetchUsers();
   } catch (error: unknown) {
@@ -161,9 +166,17 @@ watch([debouncedSearch, roleFilter, () => pagination.value.pageSize], () => {
   pagination.value.pageIndex = 0; // reset page on filter change
 });
 
-watch([debouncedSearch, roleFilter, () => pagination.value.pageIndex, () => pagination.value.pageSize], () => {
-  fetchUsers();
-});
+watch(
+  [
+    debouncedSearch,
+    roleFilter,
+    () => pagination.value.pageIndex,
+    () => pagination.value.pageSize,
+  ],
+  () => {
+    fetchUsers();
+  },
+);
 
 const getRowItems = (row: any) => [
   {
@@ -171,7 +184,7 @@ const getRowItems = (row: any) => [
     icon: "i-lucide-edit-3",
     onSelect() {
       openEditModal(row.original);
-    }
+    },
   },
   {
     label: "Copy ID",
@@ -179,7 +192,7 @@ const getRowItems = (row: any) => [
     onSelect() {
       navigator.clipboard.writeText(row.original.id);
       toast.add({ title: "Copied!", description: "Đã sao chép ID" });
-    }
+    },
   },
   {
     label: "Xóa",
@@ -187,8 +200,8 @@ const getRowItems = (row: any) => [
     color: "error" as const,
     onSelect() {
       openDeleteModal(row.original);
-    }
-  }
+    },
+  },
 ];
 
 const columns = computed<TableColumn<Profile>[]>(() => [
@@ -215,9 +228,8 @@ const columns = computed<TableColumn<Profile>[]>(() => [
   {
     id: "actions",
     header: "",
-  }
+  },
 ]);
-
 </script>
 
 <template>
@@ -240,9 +252,11 @@ const columns = computed<TableColumn<Profile>[]>(() => [
             </div>
           </div>
         </template>
-        
+
         <div class="flex flex-col gap-4">
-          <div class="flex flex-wrap items-center justify-between gap-1.5 p-4 pb-0">
+          <div
+            class="flex flex-wrap items-center justify-between gap-1.5 p-4 pb-0"
+          >
             <UInput
               v-model="searchString"
               class="max-w-sm"
@@ -257,7 +271,7 @@ const columns = computed<TableColumn<Profile>[]>(() => [
                   { label: 'Tất cả vai trò', value: 'all' },
                   { label: 'Khách hàng', value: 'customer' },
                   { label: 'Nhân viên', value: 'employee' },
-                  { label: 'Admin', value: 'admin' }
+                  { label: 'Admin', value: 'admin' },
                 ]"
                 placeholder="Lọc vai trò"
                 class="min-w-36"
@@ -269,15 +283,18 @@ const columns = computed<TableColumn<Profile>[]>(() => [
                     ?.getAllColumns()
                     .filter((column: any) => column.getCanHide())
                     .map((column: any) => ({
-                      label: column.id.charAt(0).toUpperCase() + column.id.slice(1),
+                      label:
+                        column.id.charAt(0).toUpperCase() + column.id.slice(1),
                       type: 'checkbox' as const,
                       checked: column.getIsVisible(),
                       onUpdateChecked(checked: boolean) {
-                        table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
+                        table?.tableApi
+                          ?.getColumn(column.id)
+                          ?.toggleVisibility(!!checked);
                       },
                       onSelect(e?: Event) {
-                        e?.preventDefault()
-                      }
+                        e?.preventDefault();
+                      },
                     })) || []
                 "
                 :content="{ align: 'end' }"
@@ -313,7 +330,16 @@ const columns = computed<TableColumn<Profile>[]>(() => [
               {{ row.original.name || "Người dùng" }}
             </template>
             <template #role-cell="{ row }">
-              <UBadge :color="(row.original.role || 'customer') === 'admin' ? 'error' : (row.original.role || 'customer') === 'employee' ? 'primary' : 'success'" variant="subtle">
+              <UBadge
+                :color="
+                  (row.original.role || 'customer') === 'admin'
+                    ? 'error'
+                    : (row.original.role || 'customer') === 'employee'
+                      ? 'primary'
+                      : 'success'
+                "
+                variant="subtle"
+              >
                 {{ row.original.role || "customer" }}
               </UBadge>
             </template>
@@ -321,12 +347,24 @@ const columns = computed<TableColumn<Profile>[]>(() => [
               <span class="font-semibold">{{ row.original.credits || 0 }}</span>
             </template>
             <template #created_at-cell="{ row }">
-              {{ new Date(row.original.created_at || "").toLocaleDateString("vi-VN") }}
+              {{
+                new Date(row.original.created_at || "").toLocaleDateString(
+                  "vi-VN",
+                )
+              }}
             </template>
             <template #actions-cell="{ row }">
               <div class="text-right">
-                <UDropdownMenu :content="{ align: 'end' }" :items="getRowItems(row)">
-                  <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" class="ml-auto" />
+                <UDropdownMenu
+                  :content="{ align: 'end' }"
+                  :items="getRowItems(row)"
+                >
+                  <UButton
+                    icon="i-lucide-ellipsis-vertical"
+                    color="neutral"
+                    variant="ghost"
+                    class="ml-auto"
+                  />
                 </UDropdownMenu>
               </div>
             </template>
@@ -337,17 +375,26 @@ const columns = computed<TableColumn<Profile>[]>(() => [
             </template>
           </UTable>
 
-          <div class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto">
+          <div
+            class="flex items-center justify-between gap-3 border-t border-default pt-4 p-4 mt-auto"
+          >
             <div class="text-sm text-muted">
               Hiển thị {{ total || 0 }} kết quả.
             </div>
 
-            <div class="flex items-center gap-1.5" v-if="total > pagination.pageSize">
+            <div
+              class="flex items-center gap-1.5"
+              v-if="total > pagination.pageSize"
+            >
               <UPagination
                 :default-page="pagination.pageIndex + 1"
                 :items-per-page="pagination.pageSize"
                 :total="total"
-                @update:page="(p: number) => { pagination.pageIndex = p - 1 }"
+                @update:page="
+                  (p: number) => {
+                    pagination.pageIndex = p - 1;
+                  }
+                "
               />
             </div>
           </div>
@@ -356,19 +403,20 @@ const columns = computed<TableColumn<Profile>[]>(() => [
 
       <UModal v-model:open="editModal">
         <template #header>
-          <div class="font-semibold">
-            Chỉnh sửa người dùng
-          </div>
+          <div class="font-semibold">Chỉnh sửa người dùng</div>
           <p class="text-sm text-slate-500">{{ currentUser?.name }}</p>
         </template>
         <template #body>
           <form @submit.prevent="saveUser" class="space-y-4">
             <UFormField label="Vai trò">
-              <USelect v-model="editForm.role" :items="[
-                { label: 'Khách hàng', value: 'customer' },
-                { label: 'Nhân viên', value: 'employee' },
-                { label: 'Admin', value: 'admin' }
-              ]" />
+              <USelect
+                v-model="editForm.role"
+                :items="[
+                  { label: 'Khách hàng', value: 'customer' },
+                  { label: 'Nhân viên', value: 'employee' },
+                  { label: 'Admin', value: 'admin' },
+                ]"
+              />
             </UFormField>
 
             <UFormField label="Credits">
@@ -376,8 +424,12 @@ const columns = computed<TableColumn<Profile>[]>(() => [
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-4">
-              <UButton variant="outline" @click="editModal = false">Hủy</UButton>
-              <UButton type="submit" color="primary" :loading="isSaving">Lưu thay đổi</UButton>
+              <UButton variant="outline" @click="editModal = false"
+                >Hủy</UButton
+              >
+              <UButton type="submit" color="primary" :loading="isSaving"
+                >Lưu thay đổi</UButton
+              >
             </div>
           </form>
         </template>
@@ -388,10 +440,18 @@ const columns = computed<TableColumn<Profile>[]>(() => [
           <div class="font-semibold">Xóa người dùng</div>
         </template>
         <template #body>
-          <p>Bạn có chắc chắn muốn xóa người dùng <span class="font-semibold">{{ userToDelete?.name || 'này' }}</span> không?</p>
+          <p>
+            Bạn có chắc chắn muốn xóa người dùng
+            <span class="font-semibold">{{ userToDelete?.name || "này" }}</span>
+            không?
+          </p>
           <div class="flex justify-end gap-2 pt-4">
-            <UButton variant="outline" @click="deleteModal = false">Hủy</UButton>
-            <UButton color="error" @click="deleteUser" :loading="isDeleting">Xóa</UButton>
+            <UButton variant="outline" @click="deleteModal = false"
+              >Hủy</UButton
+            >
+            <UButton color="error" @click="deleteUser" :loading="isDeleting"
+              >Xóa</UButton
+            >
           </div>
         </template>
       </UModal>

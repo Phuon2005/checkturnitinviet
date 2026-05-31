@@ -19,19 +19,33 @@ export const useOrdersStore = defineStore("orders", () => {
     status: "all",
     checkType: "all",
   });
-  const debouncedFileName = refDebounced(computed(() => filters.value.fileName), 500);
+  const debouncedFileName = refDebounced(
+    computed(() => filters.value.fileName),
+    500,
+  );
 
-  watch([debouncedFileName, () => filters.value.status, () => filters.value.checkType, () => pagination.value.pageSize], () => {
-    if (pagination.value.pageIndex === 0) {
+  watch(
+    [
+      debouncedFileName,
+      () => filters.value.status,
+      () => filters.value.checkType,
+      () => pagination.value.pageSize,
+    ],
+    () => {
+      if (pagination.value.pageIndex === 0) {
+        fetchOrders();
+      } else {
+        pagination.value.pageIndex = 0;
+      }
+    },
+  );
+
+  watch(
+    () => pagination.value.pageIndex,
+    () => {
       fetchOrders();
-    } else {
-      pagination.value.pageIndex = 0;
-    }
-  });
-
-  watch(() => pagination.value.pageIndex, () => {
-    fetchOrders();
-  });
+    },
+  );
 
   const fetchOrders = async () => {
     loading.value = true;
@@ -48,12 +62,15 @@ export const useOrdersStore = defineStore("orders", () => {
           .from("orders")
           .select(
             `*, documents!inner(*), customer:profiles!orders_user_id_fkey(*), assignee:profiles!orders_assigned_to_fkey(*), reports(*)`,
-            { count: "exact" }
+            { count: "exact" },
           );
       }
 
       if (debouncedFileName.value) {
-        query = query.ilike("documents.original_filename", `%${debouncedFileName.value}%`);
+        query = query.ilike(
+          "documents.original_filename",
+          `%${debouncedFileName.value}%`,
+        );
       }
       if (filters.value.status !== "all") {
         query = query.eq("status", filters.value.status);
@@ -65,9 +82,11 @@ export const useOrdersStore = defineStore("orders", () => {
       const from = pagination.value.pageIndex * pagination.value.pageSize;
       const to = from + pagination.value.pageSize - 1;
 
-      const { data, count, error } = await query.order("created_at", {
-        ascending: false,
-      }).range(from, to);
+      const { data, count, error } = await query
+        .order("created_at", {
+          ascending: false,
+        })
+        .range(from, to);
 
       if (error) throw error;
       orders.value = (data as unknown as Order[]) || [];
@@ -78,7 +97,11 @@ export const useOrdersStore = defineStore("orders", () => {
   };
 
   const assignOrder = async (orderId: string) => {
-    if (!profile.value || (profile.value.role !== "employee" && profile.value.role !== "admin")) return;
+    if (
+      !profile.value ||
+      (profile.value.role !== "employee" && profile.value.role !== "admin")
+    )
+      return;
 
     const { error } = await supabase
       .from("orders")
@@ -96,7 +119,7 @@ export const useOrdersStore = defineStore("orders", () => {
     similarityScore: number,
     notes?: string,
     aiReportFile?: File,
-    similarityReportFile?: File
+    similarityReportFile?: File,
   ) => {
     if (
       !profile.value ||
@@ -146,17 +169,20 @@ export const useOrdersStore = defineStore("orders", () => {
 
     const existingDetails = (existingReport?.details as any) || {};
 
-    const { error } = await supabase.from("reports").upsert({
-      order_id: orderId,
-      ai_score: aiScore,
-      similarity_score: similarityScore,
-      details: {
-        ...existingDetails,
-        notes: notes !== undefined ? notes : existingDetails.notes,
-        ...(aiReportPath ? { aiReportPath } : {}),
-        ...(similarityReportPath ? { similarityReportPath } : {}),
+    const { error } = await supabase.from("reports").upsert(
+      {
+        order_id: orderId,
+        ai_score: aiScore,
+        similarity_score: similarityScore,
+        details: {
+          ...existingDetails,
+          notes: notes !== undefined ? notes : existingDetails.notes,
+          ...(aiReportPath ? { aiReportPath } : {}),
+          ...(similarityReportPath ? { similarityReportPath } : {}),
+        },
       },
-    }, { onConflict: 'order_id' });
+      { onConflict: "order_id" },
+    );
 
     if (error) throw error;
 
@@ -260,15 +286,18 @@ export const useOrdersStore = defineStore("orders", () => {
         const updatedOrder = await fetchSingleOrder(orderId);
         // Customer logic
         if (role === "customer") {
-          if (payload.new?.user_id !== profile.value!.id && payload.old?.user_id !== profile.value!.id) {
+          if (
+            payload.new?.user_id !== profile.value!.id &&
+            payload.old?.user_id !== profile.value!.id
+          ) {
             return; // Not my order
           }
 
           let didStatusChange = false;
-          let newStatus = '';
+          let newStatus = "";
 
           if (payload.eventType === "UPDATE") {
-            const existingOrder = orders.value.find(o => o.id === orderId);
+            const existingOrder = orders.value.find((o) => o.id === orderId);
             const previousStatus = payload.old?.status || existingOrder?.status;
 
             if (previousStatus && previousStatus !== payload.new.status) {
@@ -280,8 +309,11 @@ export const useOrdersStore = defineStore("orders", () => {
           updateLocalOrder(updatedOrder);
 
           if (didStatusChange) {
-            const updatedOrder = orders.value.find((o) => o.id === payload.new.id);
-            const fileName = updatedOrder?.documents?.original_filename ?? 'Tài liệu';
+            const updatedOrder = orders.value.find(
+              (o) => o.id === payload.new.id,
+            );
+            const fileName =
+              updatedOrder?.documents?.original_filename ?? "Tài liệu";
 
             playSound();
 
@@ -303,22 +335,34 @@ export const useOrdersStore = defineStore("orders", () => {
 
         // Employee logic
         if (role === "employee") {
-          const isAssignedToMe = payload.new?.assigned_to === profile.value!.id || payload.old?.assigned_to === profile.value!.id;
-          const isNewUnassigned = payload.eventType === "INSERT" && payload.new?.assigned_to === null;
+          const isAssignedToMe =
+            payload.new?.assigned_to === profile.value!.id ||
+            payload.old?.assigned_to === profile.value!.id;
+          const isNewUnassigned =
+            payload.eventType === "INSERT" && payload.new?.assigned_to === null;
 
           if (isAssignedToMe || isNewUnassigned) {
             updateLocalOrder(updatedOrder);
 
             if (isNewUnassigned) {
-              const newOrder = orders.value.find((o) => o.id === payload.new.id);
-              const fileName = newOrder?.documents?.original_filename ?? 'Tài liệu mới';
-              const typeMap: Record<string, string> = { ai: 'AI', similarity: 'Đạo văn', combo: 'Combo' };
-              const typeLabel = newOrder?.check_type ? typeMap[newOrder.check_type] : '';
+              const newOrder = orders.value.find(
+                (o) => o.id === payload.new.id,
+              );
+              const fileName =
+                newOrder?.documents?.original_filename ?? "Tài liệu mới";
+              const typeMap: Record<string, string> = {
+                ai: "AI",
+                similarity: "Đạo văn",
+                combo: "Combo",
+              };
+              const typeLabel = newOrder?.check_type
+                ? typeMap[newOrder.check_type]
+                : "";
 
               playSound();
               toast.add({
                 title: "Đơn mới",
-                description: `${fileName} ${typeLabel ? `(${typeLabel})` : ''} cần được xử lý`,
+                description: `${fileName} ${typeLabel ? `(${typeLabel})` : ""} cần được xử lý`,
               });
             }
           }
@@ -328,7 +372,7 @@ export const useOrdersStore = defineStore("orders", () => {
         if (role === "admin") {
           updateLocalOrder(updatedOrder);
         }
-      }
+      },
     );
 
     channel.on(
@@ -361,8 +405,11 @@ export const useOrdersStore = defineStore("orders", () => {
     };
   };
 
-  const unassignedCount = computed<number>(() =>
-    (orders.value as any[]).filter((o) => !o.assigned_to && o.status !== "completed").length,
+  const unassignedCount = computed<number>(
+    () =>
+      (orders.value as any[]).filter(
+        (o) => !o.assigned_to && o.status !== "completed",
+      ).length,
   );
 
   return {

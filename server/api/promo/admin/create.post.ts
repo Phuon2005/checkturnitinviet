@@ -1,4 +1,7 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from "#supabase/server";
+import {
+  serverSupabaseServiceRole,
+  serverSupabaseUser,
+} from "#supabase/server";
 import { z } from "zod";
 
 export default eventHandler(async (event) => {
@@ -38,8 +41,11 @@ export default eventHandler(async (event) => {
     .single();
 
   if (error) {
-    if (error.code === '23505') {
-      throw createError({ statusCode: 400, message: "Mã khuyến mãi đã tồn tại" });
+    if (error.code === "23505") {
+      throw createError({
+        statusCode: 400,
+        message: "Mã khuyến mãi đã tồn tại",
+      });
     }
     throw createError({ statusCode: 500, message: error.message });
   }

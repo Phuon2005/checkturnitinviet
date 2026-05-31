@@ -1,7 +1,4 @@
-import {
-  serverSupabaseClient,
-  serverSupabaseUser,
-} from "#supabase/server";
+import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
 import { calcVariation, getPreviousRange } from "../utils";
 import { z } from "zod";
 

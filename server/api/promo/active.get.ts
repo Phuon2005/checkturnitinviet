@@ -13,14 +13,15 @@ export default eventHandler(async (event) => {
     .limit(1)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
+  if (error && error.code !== "PGRST116") {
     console.error("Error fetching active promo code:", error);
   }
 
-  if (!data) throw createError({
-    statusCode: 404,
-    statusMessage: "No active promo code"
-  })
+  if (!data)
+    throw createError({
+      statusCode: 404,
+      statusMessage: "No active promo code",
+    });
 
   return data;
 });

@@ -47,10 +47,11 @@ export default eventHandler(async (event) => {
   }
 
   // Map RPC results to the expected format { amount, created_at }
-  const mappedData = data?.map((row: any) => ({
-    amount: Number(row.total_amount),
-    created_at: row.period_date,
-  })) || [];
+  const mappedData =
+    data?.map((row: any) => ({
+      amount: Number(row.total_amount),
+      created_at: row.period_date,
+    })) || [];
 
   return mappedData;
 });

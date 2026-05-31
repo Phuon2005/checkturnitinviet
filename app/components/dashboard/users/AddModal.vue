@@ -97,12 +97,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             variant="subtle"
             @click="open = false"
           />
-          <UButton
-            label="Tạo"
-            color="primary"
-            variant="solid"
-            type="submit"
-          />
+          <UButton label="Tạo" color="primary" variant="solid" type="submit" />
         </div>
       </UForm>
     </template>

@@ -47,8 +47,12 @@ export const useSettings = () => {
 
   // Initial fetch is now handled universally in app/plugins/init.ts
   const aiCreditCost = computed(() => settings.value?.ai_credit_cost || 1);
-  const similarityCreditCost = computed(() => settings.value?.similarity_credit_cost || 1);
-  const comboCreditCost = computed(() => settings.value?.combo_credit_cost || 2);
+  const similarityCreditCost = computed(
+    () => settings.value?.similarity_credit_cost || 1,
+  );
+  const comboCreditCost = computed(
+    () => settings.value?.combo_credit_cost || 2,
+  );
   const creditPrice = computed(() => settings.value?.credit_price || 15000);
 
   return {

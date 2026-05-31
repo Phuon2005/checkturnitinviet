@@ -73,7 +73,12 @@ const columns: TableColumn<Sale>[] = [
     </template>
     <template #amount-cell="{ row }">
       <div class="text-right font-medium">
-        {{ new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number.parseFloat(row.getValue("amount"))) }}
+        {{
+          new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(Number.parseFloat(row.getValue("amount")))
+        }}
       </div>
     </template>
   </UTable>

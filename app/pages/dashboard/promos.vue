@@ -63,27 +63,47 @@ const createPromo = async () => {
       method: "POST",
       body: form.value,
     });
-    toast.add({ title: "Thành công", description: "Đã tạo mã khuyến mãi", color: "success" });
+    toast.add({
+      title: "Thành công",
+      description: "Đã tạo mã khuyến mãi",
+      color: "success",
+    });
     createModal.value = false;
     fetchPromos();
   } catch (error: any) {
-    toast.add({ title: "Lỗi", description: error.message || error.data?.message, color: "error" });
+    toast.add({
+      title: "Lỗi",
+      description: error.message || error.data?.message,
+      color: "error",
+    });
   } finally {
     isCreating.value = false;
   }
 };
 
 // Toggle
-const toggleField = async (id: string, field: "active" | "show_banner", value: boolean) => {
+const toggleField = async (
+  id: string,
+  field: "active" | "show_banner",
+  value: boolean,
+) => {
   try {
     await $fetch("/api/promo/admin/toggle", {
       method: "PUT",
       body: { id, field, value },
     });
-    toast.add({ title: "Thành công", description: `Đã cập nhật`, color: "success" });
+    toast.add({
+      title: "Thành công",
+      description: `Đã cập nhật`,
+      color: "success",
+    });
     fetchPromos();
   } catch (error: any) {
-    toast.add({ title: "Lỗi", description: error.message || error.data?.message, color: "error" });
+    toast.add({
+      title: "Lỗi",
+      description: error.message || error.data?.message,
+      color: "error",
+    });
     fetchPromos(); // revert visually
   }
 };
@@ -106,11 +126,19 @@ const deletePromo = async () => {
       method: "DELETE",
       body: { id: promoToDelete.value.id },
     });
-    toast.add({ title: "Thành công", description: "Đã xóa mã khuyến mãi", color: "success" });
+    toast.add({
+      title: "Thành công",
+      description: "Đã xóa mã khuyến mãi",
+      color: "success",
+    });
     deleteModal.value = false;
     fetchPromos();
   } catch (error: any) {
-    toast.add({ title: "Lỗi", description: error.message || error.data?.message, color: "error" });
+    toast.add({
+      title: "Lỗi",
+      description: error.message || error.data?.message,
+      color: "error",
+    });
   } finally {
     isDeleting.value = false;
   }
@@ -137,7 +165,7 @@ const columns = computed<TableColumn<any>[]>(() => [
   {
     id: "actions",
     header: "",
-  }
+  },
 ]);
 </script>
 
@@ -149,7 +177,11 @@ const columns = computed<TableColumn<any>[]>(() => [
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">Quản lý Khuyến mãi</h2>
             <div class="flex items-center gap-2">
-              <UButton color="primary" icon="i-lucide-plus" @click="openCreateModal">
+              <UButton
+                color="primary"
+                icon="i-lucide-plus"
+                @click="openCreateModal"
+              >
                 Tạo mã mới
               </UButton>
               <UButton
@@ -163,7 +195,7 @@ const columns = computed<TableColumn<any>[]>(() => [
             </div>
           </div>
         </template>
-        
+
         <UTable
           :data="promos"
           :columns="columns"
@@ -182,17 +214,43 @@ const columns = computed<TableColumn<any>[]>(() => [
             <span class="font-bold text-primary">{{ row.original.code }}</span>
           </template>
           <template #benefits-cell="{ row }">
-            {{ [row.original.discount_percentage ? `Giảm ${row.original.discount_percentage}%` : '', row.original.bonus_credits ? `+${row.original.bonus_credits} credits` : ''].filter(Boolean).join(", ") || "-" }}
+            {{
+              [
+                row.original.discount_percentage
+                  ? `Giảm ${row.original.discount_percentage}%`
+                  : "",
+                row.original.bonus_credits
+                  ? `+${row.original.bonus_credits} credits`
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(", ") || "-"
+            }}
           </template>
           <template #active-cell="{ row }">
-            <USwitch :model-value="row.original.active" @update:model-value="val => toggleField(row.original.id, 'active', val)" />
+            <USwitch
+              :model-value="row.original.active"
+              @update:model-value="
+                (val) => toggleField(row.original.id, 'active', val)
+              "
+            />
           </template>
           <template #show_banner-cell="{ row }">
-            <USwitch :model-value="row.original.show_banner" @update:model-value="val => toggleField(row.original.id, 'show_banner', val)" />
+            <USwitch
+              :model-value="row.original.show_banner"
+              @update:model-value="
+                (val) => toggleField(row.original.id, 'show_banner', val)
+              "
+            />
           </template>
           <template #actions-cell="{ row }">
             <div class="text-right">
-              <UButton icon="i-lucide-trash" color="error" variant="ghost" @click="openDeleteModal(row.original)" />
+              <UButton
+                icon="i-lucide-trash"
+                color="error"
+                variant="ghost"
+                @click="openDeleteModal(row.original)"
+              />
             </div>
           </template>
           <template #empty>
@@ -211,12 +269,21 @@ const columns = computed<TableColumn<any>[]>(() => [
         <template #body>
           <form @submit.prevent="createPromo" class="space-y-4">
             <UFormField label="Mã Code (ví dụ: SUMMER20)">
-              <UInput v-model="form.code" required style="text-transform: uppercase" />
+              <UInput
+                v-model="form.code"
+                required
+                style="text-transform: uppercase"
+              />
             </UFormField>
 
             <div class="grid grid-cols-2 gap-4">
               <UFormField label="% Giảm giá">
-                <UInput v-model="form.discount_percentage" type="number" min="1" max="100" />
+                <UInput
+                  v-model="form.discount_percentage"
+                  type="number"
+                  min="1"
+                  max="100"
+                />
               </UFormField>
               <UFormField label="Tặng thêm Credits">
                 <UInput v-model="form.bonus_credits" type="number" min="1" />
@@ -230,22 +297,36 @@ const columns = computed<TableColumn<any>[]>(() => [
             <USeparator />
 
             <div class="flex items-center justify-between">
-              <UFormField label="Hoạt động" description="Cho phép người dùng sử dụng mã này" />
+              <UFormField
+                label="Hoạt động"
+                description="Cho phép người dùng sử dụng mã này"
+              />
               <USwitch v-model="form.active" />
             </div>
 
             <div class="flex items-center justify-between">
-              <UFormField label="Hiển thị trên Banner" description="Thông báo mã này cho tất cả người dùng" />
+              <UFormField
+                label="Hiển thị trên Banner"
+                description="Thông báo mã này cho tất cả người dùng"
+              />
               <USwitch v-model="form.show_banner" />
             </div>
 
             <UFormField v-if="form.show_banner" label="Nội dung Banner">
-              <UInput v-model="form.banner_message" placeholder="Giảm giá 20% cho mùa hè này..." required />
+              <UInput
+                v-model="form.banner_message"
+                placeholder="Giảm giá 20% cho mùa hè này..."
+                required
+              />
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-4">
-              <UButton variant="outline" @click="createModal = false">Hủy</UButton>
-              <UButton type="submit" color="primary" :loading="isCreating">Tạo</UButton>
+              <UButton variant="outline" @click="createModal = false"
+                >Hủy</UButton
+              >
+              <UButton type="submit" color="primary" :loading="isCreating"
+                >Tạo</UButton
+              >
             </div>
           </form>
         </template>
@@ -257,10 +338,17 @@ const columns = computed<TableColumn<any>[]>(() => [
           <div class="font-semibold">Xóa mã khuyến mãi</div>
         </template>
         <template #body>
-          <p>Bạn có chắc chắn muốn xóa mã <span class="font-semibold">{{ promoToDelete?.code }}</span> không?</p>
+          <p>
+            Bạn có chắc chắn muốn xóa mã
+            <span class="font-semibold">{{ promoToDelete?.code }}</span> không?
+          </p>
           <div class="flex justify-end gap-2 pt-4">
-            <UButton variant="outline" @click="deleteModal = false">Hủy</UButton>
-            <UButton color="error" @click="deletePromo" :loading="isDeleting">Xóa</UButton>
+            <UButton variant="outline" @click="deleteModal = false"
+              >Hủy</UButton
+            >
+            <UButton color="error" @click="deletePromo" :loading="isDeleting"
+              >Xóa</UButton
+            >
           </div>
         </template>
       </UModal>

@@ -1,4 +1,7 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from "#supabase/server";
+import {
+  serverSupabaseServiceRole,
+  serverSupabaseUser,
+} from "#supabase/server";
 import { z } from "zod";
 
 export default eventHandler(async (event) => {
@@ -15,10 +18,7 @@ export default eventHandler(async (event) => {
 
   const supabase = serverSupabaseServiceRole(event);
 
-  const { error } = await supabase
-    .from("promo_codes")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("promo_codes").delete().eq("id", id);
 
   if (error) {
     throw createError({ statusCode: 500, message: error.message });

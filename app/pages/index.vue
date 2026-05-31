@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'to-dashboard',
-})
+  middleware: "to-dashboard",
+});
 
 const { data: page } = await useAsyncData("index", () =>
   queryCollection("index").first(),
@@ -33,10 +33,10 @@ useSeoMeta({
 });
 
 const componentMap = {
-  "ai_detection": resolveComponent('LandingAiDetectionReport'),
-  "originality_report": resolveComponent('LandingOriginalityReport'),
-  "overall_similarity": resolveComponent('LandingOverallSimilarity')
-}
+  ai_detection: resolveComponent("LandingAiDetectionReport"),
+  originality_report: resolveComponent("LandingOriginalityReport"),
+  overall_similarity: resolveComponent("LandingOverallSimilarity"),
+};
 </script>
 <template>
   <div v-if="page">
@@ -79,7 +79,8 @@ const componentMap = {
       :description="page.comparison.description"
     >
       <UPageGrid>
-        <UPageCard spotlight
+        <UPageCard
+          spotlight
           v-for="feature in page.comparison.features"
           :key="feature.title"
           variant="subtle"
@@ -92,7 +93,6 @@ const componentMap = {
         </UPageCard>
       </UPageGrid>
     </UPageSection>
-
 
     <USeparator class="mx-auto w-48" />
     <UPageSection

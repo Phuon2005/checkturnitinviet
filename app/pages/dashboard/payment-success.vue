@@ -32,7 +32,10 @@ onMounted(async () => {
       `/api/payments/status?transactionId=${transactionId}`,
     );
 
-    const paymentRes = payment as unknown as { status: string; creditsAdded?: number };
+    const paymentRes = payment as unknown as {
+      status: string;
+      creditsAdded?: number;
+    };
 
     if (paymentRes?.status === "completed") {
       // Refresh user profile to show updated credits

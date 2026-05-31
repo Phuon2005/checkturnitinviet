@@ -1,4 +1,7 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from "#supabase/server";
+import {
+  serverSupabaseServiceRole,
+  serverSupabaseUser,
+} from "#supabase/server";
 import { z } from "zod";
 
 export default eventHandler(async (event) => {
@@ -23,7 +26,10 @@ export default eventHandler(async (event) => {
     .single();
 
   if (error || !promo) {
-    return { valid: false, message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" };
+    return {
+      valid: false,
+      message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn",
+    };
   }
 
   if (promo.expires_at && new Date(promo.expires_at) < new Date()) {

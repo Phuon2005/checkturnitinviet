@@ -66,8 +66,10 @@ export default eventHandler(async (event) => {
 
       if (rpcError) {
         console.error("Error processing payment via RPC:", rpcError);
-        if (rpcError.message.includes('Amount mismatch')) return { code: "04", message: "Amount does not match" };
-        if (rpcError.message.includes('Order not found')) return { code: "01", message: "Order not found" };
+        if (rpcError.message.includes("Amount mismatch"))
+          return { code: "04", message: "Amount does not match" };
+        if (rpcError.message.includes("Order not found"))
+          return { code: "01", message: "Order not found" };
         return { code: "99", message: "Error processing payment" };
       }
 

@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { VisXYContainer, VisLine, VisAxis, VisArea, VisCrosshair, VisTooltip } from "@unovis/vue";
+import {
+  VisXYContainer,
+  VisLine,
+  VisAxis,
+  VisArea,
+  VisCrosshair,
+  VisTooltip,
+} from "@unovis/vue";
 import { format } from "date-fns";
 import { useElementSize } from "@vueuse/core";
 import type { Period } from "~/types";
@@ -33,7 +40,10 @@ const template = (d: any) => `${formatDate(d.date)}: ${d.count} đăng ký`;
 </script>
 
 <template>
-  <UCard ref="cardRef" :ui="{ root: 'overflow-visible', body: 'px-0! pt-0! pb-3!' }">
+  <UCard
+    ref="cardRef"
+    :ui="{ root: 'overflow-visible', body: 'px-0! pt-0! pb-3!' }"
+  >
     <template #header>
       <p class="font-semibold text-highlighted">Đăng ký mới</p>
     </template>
@@ -52,7 +62,9 @@ const template = (d: any) => `${formatDate(d.date)}: ${d.count} đăng ký`;
         <VisTooltip />
       </VisXYContainer>
       <template #fallback>
-        <div class="w-full h-96 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
+        <div
+          class="w-full h-96 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl"
+        ></div>
       </template>
     </ClientOnly>
   </UCard>

@@ -22,7 +22,7 @@ const columns: TableColumn<any>[] = [
     <template #header>
       <p class="font-semibold text-highlighted">Top Khách Hàng</p>
     </template>
-    
+
     <UTable
       :data="data"
       :columns="columns"
@@ -38,10 +38,16 @@ const columns: TableColumn<any>[] = [
         <div class="text-right w-full">Tổng chi tiêu</div>
       </template>
       <template #totalAmount-cell="{ row }">
-        <div class="text-right font-medium text-highlighted">{{ formatCurrencyVND(Number.parseFloat(row.getValue("totalAmount"))) }}</div>
+        <div class="text-right font-medium text-highlighted">
+          {{
+            formatCurrencyVND(Number.parseFloat(row.getValue("totalAmount")))
+          }}
+        </div>
       </template>
       <template #empty>
-        <div class="py-8 text-center text-muted">Không có dữ liệu khách hàng</div>
+        <div class="py-8 text-center text-muted">
+          Không có dữ liệu khách hàng
+        </div>
       </template>
     </UTable>
   </UCard>

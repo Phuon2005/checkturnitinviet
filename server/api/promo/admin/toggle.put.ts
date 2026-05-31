@@ -1,4 +1,7 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from "#supabase/server";
+import {
+  serverSupabaseServiceRole,
+  serverSupabaseUser,
+} from "#supabase/server";
 import { z } from "zod";
 
 export default eventHandler(async (event) => {

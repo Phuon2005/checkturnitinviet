@@ -133,7 +133,9 @@ const template = (d: DataRecord) =>
         <VisTooltip />
       </VisXYContainer>
       <template #fallback>
-        <div class="w-full h-96 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
+        <div
+          class="w-full h-96 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl"
+        ></div>
       </template>
     </ClientOnly>
   </UCard>
