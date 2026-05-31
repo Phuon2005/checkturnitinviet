@@ -130,6 +130,7 @@ const contactModal = overlay.create(ContactModal);
         </div>
         <DashboardOrdersTable
           :orders="orders.filter((o) => o.user_id === profile?.id)"
+          :default-hidden-columns="['date-updated', 'size']"
           @view="openPreview"
         />
       </div>

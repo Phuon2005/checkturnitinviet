@@ -3,9 +3,15 @@ import type { TableColumn } from "@nuxt/ui";
 import { formatBytes, formatDateTime } from "~/utils/formatters";
 import type { Order } from "~/types";
 
-const props = defineProps<{
-  orders: Order[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    orders: Order[];
+    defaultHiddenColumns?: string[];
+  }>(),
+  {
+    defaultHiddenColumns: () => [],
+  },
+);
 
 const { profile } = useProfile();
 const user = useSupabaseUser();
@@ -30,7 +36,16 @@ onMounted(() => {
 const table = useTemplateRef("table");
 
 const columnFilters = ref<{ id: string; value: string }[]>([]);
-const columnVisibility = ref({});
+
+const initialColumnVisibility = props.defaultHiddenColumns.reduce(
+  (acc, col) => {
+    acc[col] = false;
+    return acc;
+  },
+  {} as Record<string, boolean>,
+);
+
+const columnVisibility = ref(initialColumnVisibility);
 
 const columns = computed<TableColumn<Order>[]>(() => {
   const cols: TableColumn<Order>[] = [
