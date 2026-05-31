@@ -29,10 +29,11 @@ export default defineNuxtConfig({
   },
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
-    vnpayTmnCode: "",
-    vnpayHashSecret: "",
-    vnpayReturnUrl: "",
-    vnpayNotifyUrl: "",
+    payosClientId: "",
+    payosApiKey: "",
+    payosChecksumKey: "",
+    payosReturnUrl: "",
+    payosCancelUrl: "",
   },
   vite: {
     optimizeDeps: {

@@ -1,5 +1,10 @@
-import { serverSupabaseUser, serverSupabaseClient } from "#supabase/server";
+import {
+  serverSupabaseUser,
+  serverSupabaseClient,
+  serverSupabaseServiceRole,
+} from "#supabase/server";
 import { z } from "zod";
+import { PayOS } from "@payos/node";
 
 export default eventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
@@ -36,6 +41,48 @@ export default eventHandler(async (event) => {
       statusCode: 404,
       message: "Payment not found",
     });
+  }
+
+  // Auto-verify PayOS payment if it's still pending locally
+  if (payment.status === "pending" && payment.method === "payos") {
+    const config = useRuntimeConfig();
+    if (config.payosClientId && config.payosApiKey && config.payosChecksumKey) {
+      const payOS = new PayOS({
+        clientId: config.payosClientId,
+        apiKey: config.payosApiKey,
+        checksumKey: config.payosChecksumKey,
+      });
+
+      try {
+        const orderCode = Number(payment.transaction_id);
+        const paymentInfo = await payOS.paymentRequests.get(orderCode);
+
+        if (paymentInfo.status === "PAID") {
+          const supabaseAdmin = serverSupabaseServiceRole(event);
+
+          const transactionNo =
+            paymentInfo.transactions?.[0]?.reference || "AUTO_VERIFIED";
+
+          const { error: rpcError } = await supabaseAdmin.rpc(
+            "process_payos_success",
+            {
+              p_transaction_id: payment.transaction_id,
+              p_transaction_no: transactionNo,
+              p_bank_code: "PAYOS",
+              p_expected_amount: payment.amount,
+            },
+          );
+
+          if (!rpcError) {
+            payment.status = "completed";
+          } else {
+            console.error("Auto verify RPC error:", rpcError);
+          }
+        }
+      } catch (err) {
+        console.error("Error auto-verifying PayOS payment:", err);
+      }
+    }
   }
 
   return {

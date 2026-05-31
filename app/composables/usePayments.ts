@@ -17,9 +17,9 @@ export const usePayments = () => {
       };
 
       // Store transaction ID for verification on return
-      sessionStorage.setItem("vnpay_transaction_id", transactionId);
+      sessionStorage.setItem("payos_transaction_id", transactionId);
 
-      // Redirect to VNPay payment gateway
+      // Redirect to PayOS payment gateway
       window.location.href = paymentUrl;
     } catch (err: unknown) {
       const error = err as { data?: { message?: string }; message?: string };
