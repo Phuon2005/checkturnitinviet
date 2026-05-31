@@ -15,8 +15,10 @@ useSeoMeta({
 const { fetch } = useProfile();
 const { uploadFile } = useCustomFileUpload();
 const toast = useToast();
-const { aiCreditCost, similarityCreditCost, comboCreditCost } = useSettings();
+const { similarityCreditCost, comboCreditCost } = useSettings();
 const uploading = ref(false);
+const isPromoModalOpen = ref(false);
+const promoModalHidden = useCookie<boolean>("promo_modal_hidden");
 
 const state = reactive({
   files: [] as File[],
@@ -146,6 +148,10 @@ const handleSubmit = async (event: FormSubmitEvent<any>) => {
       });
 
       state.files = [];
+
+      if (!promoModalHidden.value) {
+        isPromoModalOpen.value = true;
+      }
     } else {
       toast.add({
         title: "Upload hoàn tất",
@@ -339,4 +345,6 @@ const handleSubmit = async (event: FormSubmitEvent<any>) => {
       </UForm>
     </template>
   </UDashboardPanel>
+
+  <AppPromoModal v-model:open="isPromoModalOpen" />
 </template>
