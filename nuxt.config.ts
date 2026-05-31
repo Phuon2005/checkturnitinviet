@@ -16,6 +16,7 @@ export default defineNuxtConfig({
     "@nuxt/content",
     "@nuxtjs/supabase",
     "@pinia/nuxt",
+    "@nuxt/hints"
   ],
   icon: {
     clientBundle: {
